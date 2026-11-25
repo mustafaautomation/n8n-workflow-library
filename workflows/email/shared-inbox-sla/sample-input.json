@@ -1,0 +1,6 @@
+{
+  "demo": true,
+  "from": "cfo@harbor.example",
+  "subject": "Invoice 2041 looks off",
+  "body": "The latest invoice does not match the payment we sent. Please refund the difference."
+}

@@ -1,0 +1,2169 @@
+{
+  "schema_version": "1.0.0",
+  "updated_at": "2026-11-25",
+  "disclaimer": "Portfolio demos only. These workflows are original examples for demonstration. They are not client deliverables and do not represent work performed for any customer.",
+  "author": {
+    "name": "Mustafa",
+    "github": "mustafaautomation",
+    "demos": "*.quvantic.com"
+  },
+  "n8n_tested_with": "2.49.5",
+  "workflows": [
+    {
+      "id": "ai-lead-enrich-score-hubspot",
+      "title": "AI lead capture, enrichment, and scoring into HubSpot",
+      "category": "lead-gen-crm",
+      "apps": [
+        "Web form",
+        "HubSpot",
+        "Slack",
+        "Google Sheets"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "hubspot",
+        "lead-scoring",
+        "enrichment",
+        "ai"
+      ],
+      "path": "workflows/lead-gen-crm/ai-lead-enrich-score-hubspot",
+      "description": "A new lead is normalized, scored from firmographic and intent signals, written to HubSpot, mirrored to a sheet, and announced in Slack when the tier is SQL.",
+      "test_status": "executed",
+      "screenshot": "workflows/lead-gen-crm/ai-lead-enrich-score-hubspot/screenshot.png"
+    },
+    {
+      "id": "ai-lead-enrich-score-gohighlevel",
+      "title": "AI lead capture, enrichment, and scoring into GoHighLevel",
+      "category": "lead-gen-crm",
+      "apps": [
+        "Webhook",
+        "HighLevel",
+        "Slack",
+        "Google Sheets"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "gohighlevel",
+        "highlevel",
+        "lead-scoring",
+        "ai"
+      ],
+      "path": "workflows/lead-gen-crm/ai-lead-enrich-score-gohighlevel",
+      "description": "The same capture-and-score path as the HubSpot demo, aimed at a GoHighLevel sub-account: contact, opportunity when the tier is SQL, sheet log, Slack ping.",
+      "test_status": "executed",
+      "screenshot": "workflows/lead-gen-crm/ai-lead-enrich-score-gohighlevel/screenshot.png"
+    },
+    {
+      "id": "pipedrive-deal-from-web-form",
+      "title": "Pipedrive deal from a web form",
+      "category": "lead-gen-crm",
+      "apps": [
+        "n8n Form",
+        "Pipedrive",
+        "Slack"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "pipedrive",
+        "forms",
+        "deals"
+      ],
+      "path": "workflows/lead-gen-crm/pipedrive-deal-from-web-form",
+      "description": "A web form creates a Pipedrive person and a deal, then posts the new deal title to Slack. The rules node sets the stage from the budget and source.",
+      "test_status": "executed",
+      "screenshot": "workflows/lead-gen-crm/pipedrive-deal-from-web-form/screenshot.png"
+    },
+    {
+      "id": "salesforce-lead-from-webhook",
+      "title": "Salesforce lead from a marketing webhook",
+      "category": "lead-gen-crm",
+      "apps": [
+        "Webhook",
+        "Salesforce",
+        "Slack"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "salesforce",
+        "leads"
+      ],
+      "path": "workflows/lead-gen-crm/salesforce-lead-from-webhook",
+      "description": "Normalizes a marketing webhook into a scored Salesforce lead and pings the SDR channel with the tier.",
+      "test_status": "executed",
+      "screenshot": "workflows/lead-gen-crm/salesforce-lead-from-webhook/screenshot.png"
+    },
+    {
+      "id": "linkedin-lead-to-hubspot",
+      "title": "LinkedIn lead form into HubSpot and Slack",
+      "category": "lead-gen-crm",
+      "apps": [
+        "Webhook",
+        "HubSpot",
+        "Slack",
+        "Google Sheets"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "linkedin",
+        "hubspot",
+        "ads"
+      ],
+      "path": "workflows/lead-gen-crm/linkedin-lead-to-hubspot",
+      "description": "A LinkedIn lead-gen webhook is scored and written to HubSpot. Paid clicks with a buyer title are marked SQL.",
+      "test_status": "executed",
+      "screenshot": "workflows/lead-gen-crm/linkedin-lead-to-hubspot/screenshot.png"
+    },
+    {
+      "id": "website-chat-lead-to-crm",
+      "title": "Website chat lead into the CRM",
+      "category": "lead-gen-crm",
+      "apps": [
+        "Webhook",
+        "HubSpot",
+        "Slack"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "chat",
+        "hubspot"
+      ],
+      "path": "workflows/lead-gen-crm/website-chat-lead-to-crm",
+      "description": "A chat transcript is reduced to a lead record, scored, and only pushed to HubSpot when an email address is present.",
+      "test_status": "executed",
+      "screenshot": "workflows/lead-gen-crm/website-chat-lead-to-crm/screenshot.png"
+    },
+    {
+      "id": "lead-dedupe-before-crm",
+      "title": "Dedupe a lead before writing the CRM",
+      "category": "lead-gen-crm",
+      "apps": [
+        "Webhook",
+        "Google Sheets",
+        "HubSpot"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "dedupe",
+        "hubspot"
+      ],
+      "path": "workflows/lead-gen-crm/lead-dedupe-before-crm",
+      "description": "Compares the incoming email to a known list on the payload and skips the CRM write when the lead is already there. New leads are scored and appended.",
+      "test_status": "executed",
+      "screenshot": "workflows/lead-gen-crm/lead-dedupe-before-crm/screenshot.png"
+    },
+    {
+      "id": "outbound-domain-enrichment",
+      "title": "Outbound domain enrichment into the CRM",
+      "category": "lead-gen-crm",
+      "apps": [
+        "Webhook",
+        "HTTP Request",
+        "HubSpot",
+        "Google Sheets"
+      ],
+      "difficulty": "advanced",
+      "tags": [
+        "outbound",
+        "enrichment"
+      ],
+      "path": "workflows/lead-gen-crm/outbound-domain-enrichment",
+      "description": "A domain and a guessed contact are scored and queued. The live branch can call an enrichment HTTP API before the HubSpot upsert.",
+      "test_status": "executed",
+      "screenshot": "workflows/lead-gen-crm/outbound-domain-enrichment/screenshot.png"
+    },
+    {
+      "id": "lead-score-decay",
+      "title": "Re-engage leads whose score has decayed",
+      "category": "lead-gen-crm",
+      "apps": [
+        "Schedule",
+        "Google Sheets",
+        "HubSpot",
+        "Gmail"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "nurture",
+        "scoring"
+      ],
+      "path": "workflows/lead-gen-crm/lead-score-decay",
+      "description": "A weekly pass looks at a stored score and an age in days, drops the score, and drafts a re-engagement email when the lead falls out of MQL.",
+      "test_status": "executed",
+      "screenshot": "workflows/lead-gen-crm/lead-score-decay/screenshot.png"
+    },
+    {
+      "id": "multi-crm-fanout",
+      "title": "Fan a lead out to HubSpot, Pipedrive, and Sheets",
+      "category": "lead-gen-crm",
+      "apps": [
+        "Webhook",
+        "HubSpot",
+        "Pipedrive",
+        "Google Sheets"
+      ],
+      "difficulty": "advanced",
+      "tags": [
+        "fanout",
+        "hubspot",
+        "pipedrive"
+      ],
+      "path": "workflows/lead-gen-crm/multi-crm-fanout",
+      "description": "One scored lead is written to a sheet and to two CRMs. Useful when a studio is mid-migration and both systems must stay current.",
+      "test_status": "executed",
+      "screenshot": "workflows/lead-gen-crm/multi-crm-fanout/screenshot.png"
+    },
+    {
+      "id": "utm-attribution-stitcher",
+      "title": "Stitch UTM attribution onto a CRM lead",
+      "category": "lead-gen-crm",
+      "apps": [
+        "Webhook",
+        "HubSpot",
+        "Google Sheets"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "utm",
+        "attribution"
+      ],
+      "path": "workflows/lead-gen-crm/utm-attribution-stitcher",
+      "description": "Credits a lead's value to a campaign with a last-touch model, then writes the credited amount and the raw UTMs to HubSpot and a sheet.",
+      "test_status": "executed",
+      "screenshot": "workflows/lead-gen-crm/utm-attribution-stitcher/screenshot.png"
+    },
+    {
+      "id": "trade-show-badge-to-crm",
+      "title": "Trade-show badge scan to the CRM",
+      "category": "lead-gen-crm",
+      "apps": [
+        "Webhook",
+        "HubSpot",
+        "Slack",
+        "Google Sheets"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "events",
+        "hubspot"
+      ],
+      "path": "workflows/lead-gen-crm/trade-show-badge-to-crm",
+      "description": "A badge scan from the show floor becomes a scored contact, a sheet row tagged with the event, and a Slack note for the rep who scanned it.",
+      "test_status": "executed",
+      "screenshot": "workflows/lead-gen-crm/trade-show-badge-to-crm/screenshot.png"
+    },
+    {
+      "id": "speed-to-lead-sms-email",
+      "title": "Speed-to-lead SMS and email inside 60 seconds",
+      "category": "speed-to-lead",
+      "apps": [
+        "Webhook",
+        "Twilio",
+        "Gmail",
+        "Slack"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "twilio",
+        "speed-to-lead",
+        "sms"
+      ],
+      "path": "workflows/speed-to-lead/speed-to-lead-sms-email",
+      "description": "When a pricing or demo lead arrives, the workflow checks that it is still inside 60 seconds, assigns a named owner, and prepares the SMS and email that owner should send.",
+      "test_status": "executed",
+      "screenshot": "workflows/speed-to-lead/speed-to-lead-sms-email/screenshot.png"
+    },
+    {
+      "id": "missed-call-text-back",
+      "title": "Missed-call text-back",
+      "category": "speed-to-lead",
+      "apps": [
+        "Twilio",
+        "Slack",
+        "Google Sheets"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "twilio",
+        "missed-call",
+        "sms"
+      ],
+      "path": "workflows/speed-to-lead/missed-call-text-back",
+      "description": "A missed inbound call becomes an immediate text from a named owner, a sheet row, and a Slack alert. The copy changes if the call arrived after hours.",
+      "test_status": "executed",
+      "screenshot": "workflows/speed-to-lead/missed-call-text-back/screenshot.png"
+    },
+    {
+      "id": "after-hours-voicemail-sms",
+      "title": "After-hours voicemail to SMS",
+      "category": "speed-to-lead",
+      "apps": [
+        "Twilio",
+        "Gmail",
+        "Slack"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "voicemail",
+        "after-hours"
+      ],
+      "path": "workflows/speed-to-lead/after-hours-voicemail-sms",
+      "description": "An after-hours voicemail is transcribed into the sample text and answered with an SMS that promises the morning window, plus an email to the on-call alias.",
+      "test_status": "executed",
+      "screenshot": "workflows/speed-to-lead/after-hours-voicemail-sms/screenshot.png"
+    },
+    {
+      "id": "facebook-lead-ad-instant-reply",
+      "title": "Facebook lead ad instant reply",
+      "category": "speed-to-lead",
+      "apps": [
+        "Webhook",
+        "WhatsApp",
+        "Google Sheets",
+        "Slack"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "meta-ads",
+        "whatsapp"
+      ],
+      "path": "workflows/speed-to-lead/facebook-lead-ad-instant-reply",
+      "description": "A lead-ad webhook is answered on WhatsApp inside a minute and logged to a sheet for the closer.",
+      "test_status": "executed",
+      "screenshot": "workflows/speed-to-lead/facebook-lead-ad-instant-reply/screenshot.png"
+    },
+    {
+      "id": "whatsapp-first-response",
+      "title": "WhatsApp first response for a new inquiry",
+      "category": "speed-to-lead",
+      "apps": [
+        "Webhook",
+        "WhatsApp",
+        "HubSpot"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "whatsapp",
+        "hubspot"
+      ],
+      "path": "workflows/speed-to-lead/whatsapp-first-response",
+      "description": "A new WhatsApp inquiry gets a named first reply and a HubSpot contact so the thread is not trapped in the phone.",
+      "test_status": "executed",
+      "screenshot": "workflows/speed-to-lead/whatsapp-first-response/screenshot.png"
+    },
+    {
+      "id": "round-robin-lead-assignment",
+      "title": "Round-robin lead assignment with SMS",
+      "category": "speed-to-lead",
+      "apps": [
+        "Webhook",
+        "Twilio",
+        "Slack",
+        "HubSpot"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "round-robin",
+        "assignment"
+      ],
+      "path": "workflows/speed-to-lead/round-robin-lead-assignment",
+      "description": "Leads are hashed onto a named owner, the owner is texted, Slack is posted, and the HubSpot contact carries the owner name.",
+      "test_status": "executed",
+      "screenshot": "workflows/speed-to-lead/round-robin-lead-assignment/screenshot.png"
+    },
+    {
+      "id": "quote-request-calendar-link",
+      "title": "Quote request with a calendar link",
+      "category": "speed-to-lead",
+      "apps": [
+        "n8n Form",
+        "Gmail",
+        "Slack",
+        "Google Calendar"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "quotes",
+        "calendar"
+      ],
+      "path": "workflows/speed-to-lead/quote-request-calendar-link",
+      "description": "A quote request is assigned and answered by email with the next step, and Slack tells the owner. The calendar node is ready for a hold on the live branch.",
+      "test_status": "executed",
+      "screenshot": "workflows/speed-to-lead/quote-request-calendar-link/screenshot.png"
+    },
+    {
+      "id": "abandoned-form-recovery",
+      "title": "Abandoned form recovery SMS",
+      "category": "speed-to-lead",
+      "apps": [
+        "Webhook",
+        "Twilio",
+        "Google Sheets"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "abandoned-form",
+        "sms"
+      ],
+      "path": "workflows/speed-to-lead/abandoned-form-recovery",
+      "description": "A form that captured a phone number but never a submit event is texted once, and the attempt is logged.",
+      "test_status": "executed",
+      "screenshot": "workflows/speed-to-lead/abandoned-form-recovery/screenshot.png"
+    },
+    {
+      "id": "ai-invoice-gmail-to-sheets",
+      "title": "AI invoice and receipt extraction from Gmail to Sheets, Xero, and QuickBooks",
+      "category": "invoices-docs",
+      "apps": [
+        "Gmail",
+        "Google Sheets",
+        "Xero",
+        "QuickBooks"
+      ],
+      "difficulty": "advanced",
+      "tags": [
+        "invoice",
+        "gmail",
+        "xero",
+        "quickbooks",
+        "ai"
+      ],
+      "path": "workflows/invoices-docs/ai-invoice-gmail-to-sheets",
+      "description": "A mailbox attachment is read as text, the vendor, invoice number, tax, and total are checked against each other, and a balanced bill is ready for Sheets plus either Xero or QuickBooks.",
+      "test_status": "executed",
+      "screenshot": "workflows/invoices-docs/ai-invoice-gmail-to-sheets/screenshot.png"
+    },
+    {
+      "id": "receipt-photo-to-expense-sheet",
+      "title": "Receipt photo to an expense sheet",
+      "category": "invoices-docs",
+      "apps": [
+        "Webhook",
+        "Google Sheets",
+        "Slack"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "receipts",
+        "expenses"
+      ],
+      "path": "workflows/invoices-docs/receipt-photo-to-expense-sheet",
+      "description": "A photographed receipt, already reduced to text, is checked and appended to an expense tab. Unbalanced or merchant-less receipts are flagged in Slack.",
+      "test_status": "executed",
+      "screenshot": "workflows/invoices-docs/receipt-photo-to-expense-sheet/screenshot.png"
+    },
+    {
+      "id": "invoice-approval-slack",
+      "title": "Invoice approval routed through Slack",
+      "category": "invoices-docs",
+      "apps": [
+        "Gmail",
+        "Slack",
+        "Google Sheets"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "approval",
+        "ap"
+      ],
+      "path": "workflows/invoices-docs/invoice-approval-slack",
+      "description": "Bills under the auto-approve total are marked post. Larger or unbalanced bills are marked review and sent to Slack with the amount in the message.",
+      "test_status": "executed",
+      "screenshot": "workflows/invoices-docs/invoice-approval-slack/screenshot.png"
+    },
+    {
+      "id": "po-invoice-match",
+      "title": "Match a vendor bill to a purchase order",
+      "category": "invoices-docs",
+      "apps": [
+        "Gmail",
+        "Google Sheets",
+        "Slack"
+      ],
+      "difficulty": "advanced",
+      "tags": [
+        "purchase-order",
+        "three-way-match"
+      ],
+      "path": "workflows/invoices-docs/po-invoice-match",
+      "description": "The extracted bill is compared with the PO amount on the payload. A mismatch becomes an exception row instead of a payment.",
+      "test_status": "executed",
+      "screenshot": "workflows/invoices-docs/po-invoice-match/screenshot.png"
+    },
+    {
+      "id": "recurring-invoice-reminder",
+      "title": "Reminder sequence for an unpaid invoice",
+      "category": "invoices-docs",
+      "apps": [
+        "Schedule",
+        "Gmail",
+        "Google Sheets"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "collections",
+        "reminders"
+      ],
+      "path": "workflows/invoices-docs/recurring-invoice-reminder",
+      "description": "An unpaid invoice is classified from its due date and a reminder email is drafted. The sheet records which attempt this is.",
+      "test_status": "executed",
+      "screenshot": "workflows/invoices-docs/recurring-invoice-reminder/screenshot.png"
+    },
+    {
+      "id": "contract-key-terms",
+      "title": "Extract key terms from a contract PDF",
+      "category": "invoices-docs",
+      "apps": [
+        "Gmail",
+        "Google Sheets",
+        "Slack"
+      ],
+      "difficulty": "advanced",
+      "tags": [
+        "contracts",
+        "extraction"
+      ],
+      "path": "workflows/invoices-docs/contract-key-terms",
+      "description": "Contract text is scanned for the commercial numbers that legal and finance both ask for, and the row is flagged when the total does not match the stated subtotal.",
+      "test_status": "executed",
+      "screenshot": "workflows/invoices-docs/contract-key-terms/screenshot.png"
+    },
+    {
+      "id": "multi-currency-invoice-normalizer",
+      "title": "Normalize a multi-currency invoice",
+      "category": "invoices-docs",
+      "apps": [
+        "Gmail",
+        "Google Sheets",
+        "Xero"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "currency",
+        "xero"
+      ],
+      "path": "workflows/invoices-docs/multi-currency-invoice-normalizer",
+      "description": "A EUR bill is extracted, the original currency is preserved, and the sheet stores both the source total and a USD planning figure from the rate on the payload.",
+      "test_status": "executed",
+      "screenshot": "workflows/invoices-docs/multi-currency-invoice-normalizer/screenshot.png"
+    },
+    {
+      "id": "vendor-bill-to-quickbooks",
+      "title": "Vendor bill from email into QuickBooks",
+      "category": "invoices-docs",
+      "apps": [
+        "Gmail",
+        "QuickBooks",
+        "Google Sheets"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "quickbooks",
+        "ap"
+      ],
+      "path": "workflows/invoices-docs/vendor-bill-to-quickbooks",
+      "description": "A vendor email becomes a balanced QuickBooks bill and a sheet row. Unbalanced extractions stay on the review route.",
+      "test_status": "executed",
+      "screenshot": "workflows/invoices-docs/vendor-bill-to-quickbooks/screenshot.png"
+    },
+    {
+      "id": "ai-gmail-triage-drafts",
+      "title": "AI email triage with Gmail labels and drafted replies",
+      "category": "email",
+      "apps": [
+        "Gmail",
+        "Slack"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "gmail",
+        "triage",
+        "drafts",
+        "ai"
+      ],
+      "path": "workflows/email/ai-gmail-triage-drafts",
+      "description": "Inbound mail is labeled billing, sales, support, or VIP, and a reply is drafted in Gmail. VIP mail is also posted to Slack. Nothing is sent automatically.",
+      "test_status": "executed",
+      "screenshot": "workflows/email/ai-gmail-triage-drafts/screenshot.png"
+    },
+    {
+      "id": "newsletter-digest-to-slack",
+      "title": "Newsletter digest posted to Slack",
+      "category": "email",
+      "apps": [
+        "Gmail",
+        "Slack"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "newsletter",
+        "digest"
+      ],
+      "path": "workflows/email/newsletter-digest-to-slack",
+      "description": "A newsletter is classified and reduced to a one-line Slack post so the inbox can be archived.",
+      "test_status": "executed",
+      "screenshot": "workflows/email/newsletter-digest-to-slack/screenshot.png"
+    },
+    {
+      "id": "cold-email-reply-classifier",
+      "title": "Classify replies to outbound email",
+      "category": "email",
+      "apps": [
+        "Gmail",
+        "Google Sheets",
+        "Slack"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "outbound",
+        "replies"
+      ],
+      "path": "workflows/email/cold-email-reply-classifier",
+      "description": "A reply to an outbound sequence is marked interested, not-now, or unsubscribe, then logged. Interested replies are posted to Slack.",
+      "test_status": "executed",
+      "screenshot": "workflows/email/cold-email-reply-classifier/screenshot.png"
+    },
+    {
+      "id": "shared-inbox-sla",
+      "title": "Shared inbox SLA timer",
+      "category": "email",
+      "apps": [
+        "Gmail",
+        "Slack",
+        "Google Sheets"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "sla",
+        "shared-inbox"
+      ],
+      "path": "workflows/email/shared-inbox-sla",
+      "description": "Mail is classified and the sheet stores the label. Slack is notified when the class is VIP or billing, which are the queues with a same-day promise.",
+      "test_status": "executed",
+      "screenshot": "workflows/email/shared-inbox-sla/screenshot.png"
+    },
+    {
+      "id": "gmail-to-clickup",
+      "title": "Turn a Gmail thread into a ClickUp task",
+      "category": "email",
+      "apps": [
+        "Gmail",
+        "ClickUp"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "clickup",
+        "gmail"
+      ],
+      "path": "workflows/email/gmail-to-clickup",
+      "description": "An email that is actually a request becomes a ClickUp task with the subject as the title and the body as the description.",
+      "test_status": "executed",
+      "screenshot": "workflows/email/gmail-to-clickup/screenshot.png"
+    },
+    {
+      "id": "complaint-handler",
+      "title": "Complaint and unsubscribe handler",
+      "category": "email",
+      "apps": [
+        "Gmail",
+        "Slack",
+        "Google Sheets"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "complaints",
+        "compliance"
+      ],
+      "path": "workflows/email/complaint-handler",
+      "description": "Complaints and unsubscribe requests are separated from ordinary mail and logged. Complaints go to Slack immediately.",
+      "test_status": "executed",
+      "screenshot": "workflows/email/complaint-handler/screenshot.png"
+    },
+    {
+      "id": "meeting-request-extractor",
+      "title": "Pull a meeting request out of email",
+      "category": "email",
+      "apps": [
+        "Gmail",
+        "Google Calendar",
+        "Slack"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "calendar",
+        "scheduling"
+      ],
+      "path": "workflows/email/meeting-request-extractor",
+      "description": "An email that proposes a time is turned into a calendar hold and a Slack note. The drafted reply confirms the slot.",
+      "test_status": "executed",
+      "screenshot": "workflows/email/meeting-request-extractor/screenshot.png"
+    },
+    {
+      "id": "vip-sender-escalation",
+      "title": "Escalate mail from a VIP sender",
+      "category": "email",
+      "apps": [
+        "Gmail",
+        "Slack"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "vip",
+        "escalation"
+      ],
+      "path": "workflows/email/vip-sender-escalation",
+      "description": "Mail that mentions the board, legal, or an urgent keyword is labeled VIP and posted to Slack. Everything else is a normal draft.",
+      "test_status": "executed",
+      "screenshot": "workflows/email/vip-sender-escalation/screenshot.png"
+    },
+    {
+      "id": "social-content-repurposing",
+      "title": "Repurpose a blog or YouTube piece into LinkedIn and X drafts",
+      "category": "social",
+      "apps": [
+        "RSS",
+        "LinkedIn",
+        "X",
+        "Slack",
+        "Google Sheets"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "linkedin",
+        "x",
+        "repurposing",
+        "ai",
+        "scheduling"
+      ],
+      "path": "workflows/social/social-content-repurposing",
+      "description": "A long source is cut into a LinkedIn draft, a short X draft, and a three-beat carousel. The drafts are logged and posted to Slack for approval. Nothing publishes itself.",
+      "test_status": "executed",
+      "screenshot": "workflows/social/social-content-repurposing/screenshot.png"
+    },
+    {
+      "id": "rss-to-social-queue",
+      "title": "RSS item onto a social queue",
+      "category": "social",
+      "apps": [
+        "RSS",
+        "Google Sheets",
+        "Slack"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "rss",
+        "queue"
+      ],
+      "path": "workflows/social/rss-to-social-queue",
+      "description": "A new feed item becomes a queued social draft and a Slack nudge. The queue is the sheet.",
+      "test_status": "executed",
+      "screenshot": "workflows/social/rss-to-social-queue/screenshot.png"
+    },
+    {
+      "id": "social-mention-to-slack",
+      "title": "Social mention into Slack",
+      "category": "social",
+      "apps": [
+        "Webhook",
+        "Slack",
+        "Google Sheets"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "social-listening"
+      ],
+      "path": "workflows/social/social-mention-to-slack",
+      "description": "A mention payload is classified as praise, complaint, or question and routed to Slack.",
+      "test_status": "executed",
+      "screenshot": "workflows/social/social-mention-to-slack/screenshot.png"
+    },
+    {
+      "id": "carousel-outline-from-blog",
+      "title": "Carousel outline from a blog post",
+      "category": "social",
+      "apps": [
+        "Webhook",
+        "Google Sheets",
+        "Slack"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "carousel",
+        "linkedin"
+      ],
+      "path": "workflows/social/carousel-outline-from-blog",
+      "description": "A blog body becomes a three-beat carousel outline stored in a sheet for a designer.",
+      "test_status": "executed",
+      "screenshot": "workflows/social/carousel-outline-from-blog/screenshot.png"
+    },
+    {
+      "id": "ugc-request-after-purchase",
+      "title": "Ask for a customer photo after delivery",
+      "category": "social",
+      "apps": [
+        "Shopify",
+        "Gmail",
+        "Google Sheets"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "ugc",
+        "shopify"
+      ],
+      "path": "workflows/social/ugc-request-after-purchase",
+      "description": "A delivered order is turned into a short request for a photo, drafted in Gmail and logged.",
+      "test_status": "executed",
+      "screenshot": "workflows/social/ugc-request-after-purchase/screenshot.png"
+    },
+    {
+      "id": "weekly-social-performance",
+      "title": "Weekly social performance note",
+      "category": "social",
+      "apps": [
+        "Schedule",
+        "Slack",
+        "Gmail"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "reporting",
+        "social"
+      ],
+      "path": "workflows/social/weekly-social-performance",
+      "description": "A week of post metrics is rolled into a short Slack and email note.",
+      "test_status": "executed",
+      "screenshot": "workflows/social/weekly-social-performance/screenshot.png"
+    },
+    {
+      "id": "hashtag-research-to-sheets",
+      "title": "Hashtag research into a sheet",
+      "category": "social",
+      "apps": [
+        "Webhook",
+        "Google Sheets"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "hashtags",
+        "research"
+      ],
+      "path": "workflows/social/hashtag-research-to-sheets",
+      "description": "A caption is scanned for topic words and stored with the tags the draft should carry.",
+      "test_status": "executed",
+      "screenshot": "workflows/social/hashtag-research-to-sheets/screenshot.png"
+    },
+    {
+      "id": "podcast-titles-from-transcript",
+      "title": "Podcast title ideas from a transcript",
+      "category": "social",
+      "apps": [
+        "Webhook",
+        "Google Sheets",
+        "Slack"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "podcast",
+        "titles"
+      ],
+      "path": "workflows/social/podcast-titles-from-transcript",
+      "description": "A transcript's opening line becomes a working title, a LinkedIn hook, and a short post. The producer gets the options in Slack.",
+      "test_status": "executed",
+      "screenshot": "workflows/social/podcast-titles-from-transcript/screenshot.png"
+    },
+    {
+      "id": "shopify-order-sync",
+      "title": "Shopify order to Sheets, Slack, and fulfillment",
+      "category": "ecommerce",
+      "apps": [
+        "Shopify",
+        "Google Sheets",
+        "Slack"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "shopify",
+        "orders",
+        "fulfillment"
+      ],
+      "path": "workflows/ecommerce/shopify-order-sync",
+      "description": "A new Shopify order is classed as fulfill, VIP, refund, or fraud-review. The sheet always gets a row. Slack hears about VIP and exceptions, and the order node is ready to write a tag back.",
+      "test_status": "executed",
+      "screenshot": "workflows/ecommerce/shopify-order-sync/screenshot.png"
+    },
+    {
+      "id": "woocommerce-order-sync",
+      "title": "WooCommerce order sync to Sheets and Slack",
+      "category": "ecommerce",
+      "apps": [
+        "WooCommerce",
+        "Google Sheets",
+        "Slack"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "woocommerce",
+        "orders"
+      ],
+      "path": "workflows/ecommerce/woocommerce-order-sync",
+      "description": "A WooCommerce order follows the same fulfill, VIP, and exception routes as the Shopify demo, with the store name stamped on every row.",
+      "test_status": "executed",
+      "screenshot": "workflows/ecommerce/woocommerce-order-sync/screenshot.png"
+    },
+    {
+      "id": "abandoned-cart-recovery",
+      "title": "Abandoned cart recovery email",
+      "category": "ecommerce",
+      "apps": [
+        "Webhook",
+        "Gmail",
+        "Google Sheets"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "abandoned-cart"
+      ],
+      "path": "workflows/ecommerce/abandoned-cart-recovery",
+      "description": "A checkout that captured an email but no payment is logged and a single recovery draft is prepared.",
+      "test_status": "executed",
+      "screenshot": "workflows/ecommerce/abandoned-cart-recovery/screenshot.png"
+    },
+    {
+      "id": "refund-alert",
+      "title": "Refund alert to Slack and Sheets",
+      "category": "ecommerce",
+      "apps": [
+        "Shopify",
+        "Slack",
+        "Google Sheets"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "refunds"
+      ],
+      "path": "workflows/ecommerce/refund-alert",
+      "description": "A refunded order is logged and announced. Paid orders stay quiet.",
+      "test_status": "executed",
+      "screenshot": "workflows/ecommerce/refund-alert/screenshot.png"
+    },
+    {
+      "id": "low-inventory-alert",
+      "title": "Low inventory alert",
+      "category": "ecommerce",
+      "apps": [
+        "Schedule",
+        "Slack",
+        "Google Sheets"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "inventory"
+      ],
+      "path": "workflows/ecommerce/low-inventory-alert",
+      "description": "On-hand quantity and daily velocity become days of cover. Stockouts and reorder points are posted to Slack.",
+      "test_status": "executed",
+      "screenshot": "workflows/ecommerce/low-inventory-alert/screenshot.png"
+    },
+    {
+      "id": "review-request-after-delivery",
+      "title": "Review request after delivery",
+      "category": "ecommerce",
+      "apps": [
+        "Shopify",
+        "Gmail",
+        "Google Sheets"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "reviews"
+      ],
+      "path": "workflows/ecommerce/review-request-after-delivery",
+      "description": "A fulfilled, paid order becomes a review request draft. Refunds and pending payments do not ask for a review.",
+      "test_status": "executed",
+      "screenshot": "workflows/ecommerce/review-request-after-delivery/screenshot.png"
+    },
+    {
+      "id": "cod-order-verification",
+      "title": "Cash-on-delivery order verification",
+      "category": "ecommerce",
+      "apps": [
+        "WooCommerce",
+        "Twilio",
+        "Google Sheets"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "cod",
+        "verification"
+      ],
+      "path": "workflows/ecommerce/cod-order-verification",
+      "description": "A cash-on-delivery order is texted for a yes before it is picked. Prepaid orders skip the text.",
+      "test_status": "executed",
+      "screenshot": "workflows/ecommerce/cod-order-verification/screenshot.png"
+    },
+    {
+      "id": "multi-store-order-rollup",
+      "title": "Roll two stores into one order sheet",
+      "category": "ecommerce",
+      "apps": [
+        "Shopify",
+        "WooCommerce",
+        "Google Sheets",
+        "Slack"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "multi-store"
+      ],
+      "path": "workflows/ecommerce/multi-store-order-rollup",
+      "description": "Shopify and WooCommerce orders share one route and one sheet, with the store name on every row, so a daily Slack total is possible.",
+      "test_status": "executed",
+      "screenshot": "workflows/ecommerce/multi-store-order-rollup/screenshot.png"
+    },
+    {
+      "id": "ai-support-ticket-routing",
+      "title": "AI support ticket classification and routing",
+      "category": "support",
+      "apps": [
+        "Webhook",
+        "Zendesk",
+        "Freshdesk",
+        "Slack"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "zendesk",
+        "freshdesk",
+        "routing",
+        "ai"
+      ],
+      "path": "workflows/support/ai-support-ticket-routing",
+      "description": "A ticket is classed as billing, technical, account, or general. The same decision opens a Zendesk ticket and a Freshdesk ticket so you can keep the desk you actually use, and Slack hears about technical and billing.",
+      "test_status": "executed",
+      "screenshot": "workflows/support/ai-support-ticket-routing/screenshot.png"
+    },
+    {
+      "id": "csat-detractor-followup",
+      "title": "Follow up a CSAT detractor",
+      "category": "support",
+      "apps": [
+        "Webhook",
+        "Gmail",
+        "Slack",
+        "Google Sheets"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "csat"
+      ],
+      "path": "workflows/support/csat-detractor-followup",
+      "description": "A survey comment is classed, and anything that reads as a complaint gets a personal follow-up draft plus a Slack ping.",
+      "test_status": "executed",
+      "screenshot": "workflows/support/csat-detractor-followup/screenshot.png"
+    },
+    {
+      "id": "sla-breach-warning",
+      "title": "SLA breach warning",
+      "category": "support",
+      "apps": [
+        "Schedule",
+        "Slack",
+        "Google Sheets"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "sla"
+      ],
+      "path": "workflows/support/sla-breach-warning",
+      "description": "An open ticket with an age and a class is judged against a same-day promise. Technical tickets are the ones that page Slack.",
+      "test_status": "executed",
+      "screenshot": "workflows/support/sla-breach-warning/screenshot.png"
+    },
+    {
+      "id": "macro-suggestion",
+      "title": "Suggest a macro from the ticket text",
+      "category": "support",
+      "apps": [
+        "Zendesk",
+        "Slack"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "macros"
+      ],
+      "path": "workflows/support/macro-suggestion",
+      "description": "The ticket class picks a macro family. The draft on the record is the suggested reply, posted to Slack for the agent.",
+      "test_status": "executed",
+      "screenshot": "workflows/support/macro-suggestion/screenshot.png"
+    },
+    {
+      "id": "oncall-escalation",
+      "title": "Escalate an outage ticket to on-call",
+      "category": "support",
+      "apps": [
+        "Webhook",
+        "Slack",
+        "Twilio",
+        "Zendesk"
+      ],
+      "difficulty": "advanced",
+      "tags": [
+        "on-call",
+        "incident"
+      ],
+      "path": "workflows/support/oncall-escalation",
+      "description": "Technical tickets that mention an outage or a 500 page Slack and text the on-call number. Other classes stay in Zendesk.",
+      "test_status": "executed",
+      "screenshot": "workflows/support/oncall-escalation/screenshot.png"
+    },
+    {
+      "id": "refund-intent-detector",
+      "title": "Detect refund intent in a ticket",
+      "category": "support",
+      "apps": [
+        "Zendesk",
+        "Slack",
+        "Google Sheets"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "refunds",
+        "intent"
+      ],
+      "path": "workflows/support/refund-intent-detector",
+      "description": "Tickets that ask for money back are separated from bugs and login issues and logged for finance.",
+      "test_status": "executed",
+      "screenshot": "workflows/support/refund-intent-detector/screenshot.png"
+    },
+    {
+      "id": "help-center-article-suggester",
+      "title": "Suggest a help-center article",
+      "category": "support",
+      "apps": [
+        "Webhook",
+        "Slack"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "help-center",
+        "deflection"
+      ],
+      "path": "workflows/support/help-center-article-suggester",
+      "description": "A question is matched to a small local help set and the suggested article is posted for the agent. Unknown questions fall through.",
+      "test_status": "executed",
+      "screenshot": "workflows/support/help-center-article-suggester/screenshot.png"
+    },
+    {
+      "id": "after-hours-ticket-ack",
+      "title": "After-hours ticket acknowledgement",
+      "category": "support",
+      "apps": [
+        "Zendesk",
+        "Gmail"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "after-hours"
+      ],
+      "path": "workflows/support/after-hours-ticket-ack",
+      "description": "A ticket that arrives after hours gets an acknowledgement draft that names the next window. The class is still stored so the morning queue is sorted.",
+      "test_status": "executed",
+      "screenshot": "workflows/support/after-hours-ticket-ack/screenshot.png"
+    },
+    {
+      "id": "appointment-booking-reminders",
+      "title": "Appointment booking with SMS and email reminders",
+      "category": "booking",
+      "apps": [
+        "Calendly",
+        "Twilio",
+        "Gmail",
+        "Google Calendar",
+        "Slack"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "calendly",
+        "cal.com",
+        "reminders",
+        "sms"
+      ],
+      "path": "workflows/booking/appointment-booking-reminders",
+      "description": "A Calendly or Cal.com booking is turned into a 24-hour and a 2-hour reminder plan. SMS goes out when a phone exists, email otherwise. The calendar node can mirror the hold, and Slack sees the booking.",
+      "test_status": "executed",
+      "screenshot": "workflows/booking/appointment-booking-reminders/screenshot.png"
+    },
+    {
+      "id": "no-show-recovery",
+      "title": "No-show recovery message",
+      "category": "booking",
+      "apps": [
+        "Webhook",
+        "Twilio",
+        "Gmail",
+        "Slack"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "no-show"
+      ],
+      "path": "workflows/booking/no-show-recovery",
+      "description": "A booking marked no-show gets a short recovery note and a Slack line so the host can offer one new time.",
+      "test_status": "executed",
+      "screenshot": "workflows/booking/no-show-recovery/screenshot.png"
+    },
+    {
+      "id": "intake-form-before-appointment",
+      "title": "Intake form before the appointment",
+      "category": "booking",
+      "apps": [
+        "n8n Form",
+        "Google Sheets",
+        "Slack"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "intake"
+      ],
+      "path": "workflows/booking/intake-form-before-appointment",
+      "description": "An intake form is stored against the upcoming appointment and summarized for the host in Slack.",
+      "test_status": "executed",
+      "screenshot": "workflows/booking/intake-form-before-appointment/screenshot.png"
+    },
+    {
+      "id": "cancellation-reschedule-link",
+      "title": "Send a reschedule link when a booking is canceled",
+      "category": "booking",
+      "apps": [
+        "Calendly",
+        "Gmail",
+        "Slack"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "cancellation",
+        "reschedule"
+      ],
+      "path": "workflows/booking/cancellation-reschedule-link",
+      "description": "A canceled invitee gets a reschedule draft and Slack is told the slot is free.",
+      "test_status": "executed",
+      "screenshot": "workflows/booking/cancellation-reschedule-link/screenshot.png"
+    },
+    {
+      "id": "class-roster-to-sheets",
+      "title": "Group class roster to a sheet",
+      "category": "booking",
+      "apps": [
+        "Webhook",
+        "Google Sheets",
+        "Slack"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "roster",
+        "classes"
+      ],
+      "path": "workflows/booking/class-roster-to-sheets",
+      "description": "Each booking on a group session is a roster row. Slack gets a one-line count when you roll the rows up.",
+      "test_status": "executed",
+      "screenshot": "workflows/booking/class-roster-to-sheets/screenshot.png"
+    },
+    {
+      "id": "buffer-conflict-check",
+      "title": "Flag a booking that breaks the buffer",
+      "category": "booking",
+      "apps": [
+        "Calendly",
+        "Slack",
+        "Google Calendar"
+      ],
+      "difficulty": "advanced",
+      "tags": [
+        "buffer",
+        "conflicts"
+      ],
+      "path": "workflows/booking/buffer-conflict-check",
+      "description": "A new booking is summarized and Slack is warned when the payload says it overlaps the previous meeting's buffer.",
+      "test_status": "executed",
+      "screenshot": "workflows/booking/buffer-conflict-check/screenshot.png"
+    },
+    {
+      "id": "weekly-kpi-report",
+      "title": "Weekly KPI report to Slack and email",
+      "category": "reporting",
+      "apps": [
+        "Schedule",
+        "Slack",
+        "Gmail",
+        "Google Sheets"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "kpi",
+        "slack",
+        "reporting"
+      ],
+      "path": "workflows/reporting/weekly-kpi-report",
+      "description": "Monday morning numbers are summed, compared with last week, and written as a short Slack post and an email. The sheet keeps the totals.",
+      "test_status": "executed",
+      "screenshot": "workflows/reporting/weekly-kpi-report/screenshot.png"
+    },
+    {
+      "id": "claude-crm-summary-dashboard",
+      "title": "Claude-ready CRM summary for the Monday dashboard",
+      "category": "reporting",
+      "apps": [
+        "Schedule",
+        "HubSpot",
+        "Slack",
+        "Gmail",
+        "Anthropic"
+      ],
+      "difficulty": "advanced",
+      "tags": [
+        "claude",
+        "crm",
+        "dashboard",
+        "ai"
+      ],
+      "path": "workflows/reporting/claude-crm-summary-dashboard",
+      "description": "Pipeline totals are rolled into a briefing a Claude model can tighten on the live branch. The demo briefing is already a readable paragraph, so the Monday Slack post works before any model key is added.",
+      "test_status": "executed",
+      "screenshot": "workflows/reporting/claude-crm-summary-dashboard/screenshot.png"
+    },
+    {
+      "id": "daily-sales-flash",
+      "title": "Daily sales flash",
+      "category": "reporting",
+      "apps": [
+        "Schedule",
+        "Slack"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "sales",
+        "flash"
+      ],
+      "path": "workflows/reporting/daily-sales-flash",
+      "description": "A one-line daily sales flash: orders, revenue, and average order value versus yesterday.",
+      "test_status": "executed",
+      "screenshot": "workflows/reporting/daily-sales-flash/screenshot.png"
+    },
+    {
+      "id": "ad-spend-versus-revenue",
+      "title": "Ad spend versus revenue digest",
+      "category": "reporting",
+      "apps": [
+        "Schedule",
+        "Slack",
+        "Google Sheets"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "ads",
+        "roas"
+      ],
+      "path": "workflows/reporting/ad-spend-versus-revenue",
+      "description": "Spend and revenue are rolled up so the digest can show whether paid acquisition paid for itself this week.",
+      "test_status": "executed",
+      "screenshot": "workflows/reporting/ad-spend-versus-revenue/screenshot.png"
+    },
+    {
+      "id": "monday-pipeline-forecast",
+      "title": "Monday pipeline forecast email",
+      "category": "reporting",
+      "apps": [
+        "Schedule",
+        "Gmail",
+        "HubSpot"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "forecast",
+        "pipeline"
+      ],
+      "path": "workflows/reporting/monday-pipeline-forecast",
+      "description": "Open pipeline, commit, and best-case are rolled into the Monday forecast email.",
+      "test_status": "executed",
+      "screenshot": "workflows/reporting/monday-pipeline-forecast/screenshot.png"
+    },
+    {
+      "id": "support-volume-digest",
+      "title": "Support volume digest",
+      "category": "reporting",
+      "apps": [
+        "Schedule",
+        "Slack",
+        "Google Sheets"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "support",
+        "volume"
+      ],
+      "path": "workflows/reporting/support-volume-digest",
+      "description": "Ticket counts by class are summed for the week and posted to the support channel.",
+      "test_status": "executed",
+      "screenshot": "workflows/reporting/support-volume-digest/screenshot.png"
+    },
+    {
+      "id": "churn-risk-weekly",
+      "title": "Weekly churn-risk note",
+      "category": "reporting",
+      "apps": [
+        "Schedule",
+        "Slack",
+        "Gmail"
+      ],
+      "difficulty": "advanced",
+      "tags": [
+        "churn"
+      ],
+      "path": "workflows/reporting/churn-risk-weekly",
+      "description": "Accounts flagged at-risk are counted and the note names how many need a call this week.",
+      "test_status": "executed",
+      "screenshot": "workflows/reporting/churn-risk-weekly/screenshot.png"
+    },
+    {
+      "id": "executive-one-pager",
+      "title": "Executive one-pager from a sheet",
+      "category": "reporting",
+      "apps": [
+        "Schedule",
+        "Gmail",
+        "Google Sheets",
+        "Slack"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "executive",
+        "one-pager"
+      ],
+      "path": "workflows/reporting/executive-one-pager",
+      "description": "A handful of company metrics become a one-pager email and a short Slack trailer.",
+      "test_status": "executed",
+      "screenshot": "workflows/reporting/executive-one-pager/screenshot.png"
+    },
+    {
+      "id": "slack-to-notion-clickup",
+      "title": "Slack message to a Notion page and a ClickUp task",
+      "category": "ops",
+      "apps": [
+        "Slack",
+        "Notion",
+        "ClickUp"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "slack",
+        "notion",
+        "clickup"
+      ],
+      "path": "workflows/ops/slack-to-notion-clickup",
+      "description": "A Slack message with an @owner and a due date becomes both a Notion page and a ClickUp task. Urgent words raise the priority.",
+      "test_status": "executed",
+      "screenshot": "workflows/ops/slack-to-notion-clickup/screenshot.png"
+    },
+    {
+      "id": "standup-collector",
+      "title": "Collect a standup into Notion",
+      "category": "ops",
+      "apps": [
+        "Slack",
+        "Notion"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "standup",
+        "notion"
+      ],
+      "path": "workflows/ops/standup-collector",
+      "description": "A standup message becomes a Notion page titled with the first line, assigned to the mentioned person.",
+      "test_status": "executed",
+      "screenshot": "workflows/ops/standup-collector/screenshot.png"
+    },
+    {
+      "id": "bug-report-to-jira",
+      "title": "Bug report from Slack to Jira",
+      "category": "ops",
+      "apps": [
+        "Slack",
+        "Jira",
+        "Google Sheets"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "jira",
+        "bugs"
+      ],
+      "path": "workflows/ops/bug-report-to-jira",
+      "description": "A Slack bug report becomes a Jira issue. Messages that say blocker or urgent are high priority.",
+      "test_status": "executed",
+      "screenshot": "workflows/ops/bug-report-to-jira/screenshot.png"
+    },
+    {
+      "id": "meeting-notes-to-tasks",
+      "title": "Meeting notes to tasks",
+      "category": "ops",
+      "apps": [
+        "Webhook",
+        "ClickUp",
+        "Notion",
+        "Slack"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "meetings",
+        "tasks"
+      ],
+      "path": "workflows/ops/meeting-notes-to-tasks",
+      "description": "Notes pasted after a call are split into a task with an owner and a due date, then mirrored to Notion.",
+      "test_status": "executed",
+      "screenshot": "workflows/ops/meeting-notes-to-tasks/screenshot.png"
+    },
+    {
+      "id": "onboarding-checklist",
+      "title": "New-hire onboarding checklist",
+      "category": "ops",
+      "apps": [
+        "Webhook",
+        "Notion",
+        "Slack",
+        "Gmail"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "onboarding"
+      ],
+      "path": "workflows/ops/onboarding-checklist",
+      "description": "A new hire's name and start date become a checklist page, a Slack announcement, and a welcome draft.",
+      "test_status": "executed",
+      "screenshot": "workflows/ops/onboarding-checklist/screenshot.png"
+    },
+    {
+      "id": "slack-approval-gate",
+      "title": "Slack approval gate before a task is created",
+      "category": "ops",
+      "apps": [
+        "Slack",
+        "ClickUp"
+      ],
+      "difficulty": "advanced",
+      "tags": [
+        "approval"
+      ],
+      "path": "workflows/ops/slack-approval-gate",
+      "description": "A request is parsed into a task and the summary is posted back to Slack. The ClickUp node waits on the live branch so a human can reject the demo result before anything is created.",
+      "test_status": "executed",
+      "screenshot": "workflows/ops/slack-approval-gate/screenshot.png"
+    },
+    {
+      "id": "document-request-tracker",
+      "title": "Track a document request",
+      "category": "ops",
+      "apps": [
+        "Gmail",
+        "Google Sheets",
+        "Slack"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "documents"
+      ],
+      "path": "workflows/ops/document-request-tracker",
+      "description": "An email asking for a document becomes a tracked row with an owner and a due date, and Slack is told.",
+      "test_status": "executed",
+      "screenshot": "workflows/ops/document-request-tracker/screenshot.png"
+    },
+    {
+      "id": "incident-channel-digest",
+      "title": "Digest an incident channel",
+      "category": "ops",
+      "apps": [
+        "Slack",
+        "Notion",
+        "Google Sheets"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "incident"
+      ],
+      "path": "workflows/ops/incident-channel-digest",
+      "description": "Incident channel messages are reduced to a timeline note with an owner, then stored in Notion and a sheet.",
+      "test_status": "executed",
+      "screenshot": "workflows/ops/incident-channel-digest/screenshot.png"
+    },
+    {
+      "id": "web-scrape-enrich-sheets",
+      "title": "Web page scrape and enrichment into Sheets",
+      "category": "scraping-enrichment",
+      "apps": [
+        "HTTP Request",
+        "Google Sheets",
+        "Slack"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "scraping",
+        "enrichment",
+        "sheets"
+      ],
+      "path": "workflows/scraping-enrichment/web-scrape-enrich-sheets",
+      "description": "HTML you already fetched is parsed for a title, an email, and a phone. Complete rows go to the sheet. Partial rows are kept and marked. The live branch can refetch the URL.",
+      "test_status": "executed",
+      "screenshot": "workflows/scraping-enrichment/web-scrape-enrich-sheets/screenshot.png"
+    },
+    {
+      "id": "job-board-monitor",
+      "title": "Job board posting onto a sheet",
+      "category": "scraping-enrichment",
+      "apps": [
+        "HTTP Request",
+        "Google Sheets",
+        "Slack"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "jobs",
+        "monitoring"
+      ],
+      "path": "workflows/scraping-enrichment/job-board-monitor",
+      "description": "A job posting page is reduced to a title and a contact and appended when it is new.",
+      "test_status": "executed",
+      "screenshot": "workflows/scraping-enrichment/job-board-monitor/screenshot.png"
+    },
+    {
+      "id": "competitor-price-watch",
+      "title": "Competitor price watch",
+      "category": "scraping-enrichment",
+      "apps": [
+        "Schedule",
+        "HTTP Request",
+        "Google Sheets",
+        "Slack"
+      ],
+      "difficulty": "advanced",
+      "tags": [
+        "pricing",
+        "competitors"
+      ],
+      "path": "workflows/scraping-enrichment/competitor-price-watch",
+      "description": "A pricing page is stored with whatever commercial numbers the payload already parsed, and Slack is told when the route is complete.",
+      "test_status": "executed",
+      "screenshot": "workflows/scraping-enrichment/competitor-price-watch/screenshot.png"
+    },
+    {
+      "id": "directory-listing-cleanup",
+      "title": "Clean a directory listing",
+      "category": "scraping-enrichment",
+      "apps": [
+        "Webhook",
+        "Google Sheets"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "directory",
+        "cleanup"
+      ],
+      "path": "workflows/scraping-enrichment/directory-listing-cleanup",
+      "description": "A messy directory row plus its HTML is normalized. Rows missing an email stay marked partial instead of being dropped.",
+      "test_status": "executed",
+      "screenshot": "workflows/scraping-enrichment/directory-listing-cleanup/screenshot.png"
+    },
+    {
+      "id": "maps-style-lead-list",
+      "title": "Maps-style lead list into Sheets",
+      "category": "scraping-enrichment",
+      "apps": [
+        "Webhook",
+        "Google Sheets",
+        "HubSpot"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "local-leads"
+      ],
+      "path": "workflows/scraping-enrichment/maps-style-lead-list",
+      "description": "A local listing that already includes a phone and a site is normalized and can be pushed to HubSpot when the email or phone is present.",
+      "test_status": "executed",
+      "screenshot": "workflows/scraping-enrichment/maps-style-lead-list/screenshot.png"
+    },
+    {
+      "id": "tech-stack-from-website",
+      "title": "Note a website's visible tech hints",
+      "category": "scraping-enrichment",
+      "apps": [
+        "HTTP Request",
+        "Google Sheets"
+      ],
+      "difficulty": "advanced",
+      "tags": [
+        "tech-stack"
+      ],
+      "path": "workflows/scraping-enrichment/tech-stack-from-website",
+      "description": "A homepage is stored with its title and any contact, ready for a later pass that looks for script tags.",
+      "test_status": "executed",
+      "screenshot": "workflows/scraping-enrichment/tech-stack-from-website/screenshot.png"
+    },
+    {
+      "id": "review-aggregation",
+      "title": "Aggregate public review snippets",
+      "category": "scraping-enrichment",
+      "apps": [
+        "Webhook",
+        "Google Sheets",
+        "Slack"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "reviews"
+      ],
+      "path": "workflows/scraping-enrichment/review-aggregation",
+      "description": "A review snippet is classified as praise or complaint and stored. Complaints are posted to Slack.",
+      "test_status": "executed",
+      "screenshot": "workflows/scraping-enrichment/review-aggregation/screenshot.png"
+    },
+    {
+      "id": "industry-news-enrichment",
+      "title": "Industry news item enriched for the team",
+      "category": "scraping-enrichment",
+      "apps": [
+        "RSS",
+        "Slack",
+        "Google Sheets"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "news",
+        "rss"
+      ],
+      "path": "workflows/scraping-enrichment/industry-news-enrichment",
+      "description": "A feed item is turned into a short social-style brief and logged, then posted to Slack.",
+      "test_status": "executed",
+      "screenshot": "workflows/scraping-enrichment/industry-news-enrichment/screenshot.png"
+    },
+    {
+      "id": "ai-agent-with-tools",
+      "title": "AI agent with memory, a pricing tool, and a sheet tool",
+      "category": "ai-agents",
+      "apps": [
+        "AI Agent",
+        "Groq",
+        "Google Sheets",
+        "Slack"
+      ],
+      "difficulty": "advanced",
+      "tags": [
+        "ai-agent",
+        "groq",
+        "tools",
+        "memory"
+      ],
+      "path": "workflows/ai-agents/ai-agent-with-tools",
+      "description": "A question is answered from a local pricing book in demo mode. On the live branch an n8n AI Agent uses Groq, a short memory, a code tool for prices, an HTTP tool, and a Google Sheets tool, then posts the reply to Slack.",
+      "test_status": "executed",
+      "screenshot": "workflows/ai-agents/ai-agent-with-tools/screenshot.png"
+    },
+    {
+      "id": "rag-knowledge-base-chatbot",
+      "title": "RAG knowledge-base chatbot",
+      "category": "ai-agents",
+      "apps": [
+        "Chat",
+        "Groq",
+        "Gemini embeddings",
+        "Vector store"
+      ],
+      "difficulty": "advanced",
+      "tags": [
+        "rag",
+        "vector-store",
+        "chatbot"
+      ],
+      "path": "workflows/ai-agents/rag-knowledge-base-chatbot",
+      "description": "A question is answered from a tiny local knowledge set in demo mode. The live branch is a retrieval chain: Gemini embeddings, an in-memory vector store, a retriever, and a Groq chat model. An insert path is on the canvas for loading documents.",
+      "test_status": "executed",
+      "screenshot": "workflows/ai-agents/rag-knowledge-base-chatbot/screenshot.png"
+    },
+    {
+      "id": "research-brief-agent",
+      "title": "Research brief agent",
+      "category": "ai-agents",
+      "apps": [
+        "AI Agent",
+        "Groq",
+        "Slack"
+      ],
+      "difficulty": "advanced",
+      "tags": [
+        "research",
+        "agent"
+      ],
+      "path": "workflows/ai-agents/research-brief-agent",
+      "description": "A research question is answered from a local brief book in demo mode. The live agent can browse an HTTP tool and post the brief to Slack.",
+      "test_status": "executed",
+      "screenshot": "workflows/ai-agents/research-brief-agent/screenshot.png"
+    },
+    {
+      "id": "sheets-analyst-agent",
+      "title": "Sheet analyst agent",
+      "category": "ai-agents",
+      "apps": [
+        "AI Agent",
+        "Groq",
+        "Google Sheets",
+        "Slack"
+      ],
+      "difficulty": "advanced",
+      "tags": [
+        "sheets",
+        "analyst"
+      ],
+      "path": "workflows/ai-agents/sheets-analyst-agent",
+      "description": "A question about the weekly numbers is answered from the rollup the payload already contains. The live agent can read the sheet.",
+      "test_status": "executed",
+      "screenshot": "workflows/ai-agents/sheets-analyst-agent/screenshot.png"
+    },
+    {
+      "id": "guarded-email-reply-agent",
+      "title": "Guarded email reply agent",
+      "category": "ai-agents",
+      "apps": [
+        "Gmail",
+        "AI Agent",
+        "Groq"
+      ],
+      "difficulty": "advanced",
+      "tags": [
+        "email",
+        "guardrails"
+      ],
+      "path": "workflows/ai-agents/guarded-email-reply-agent",
+      "description": "A reply is drafted from a policy book. The live agent may call Gmail only to create a draft, never to send.",
+      "test_status": "executed",
+      "screenshot": "workflows/ai-agents/guarded-email-reply-agent/screenshot.png"
+    },
+    {
+      "id": "internal-it-help-agent",
+      "title": "Internal IT help agent",
+      "category": "ai-agents",
+      "apps": [
+        "Slack",
+        "AI Agent",
+        "Groq"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "it",
+        "helpdesk"
+      ],
+      "path": "workflows/ai-agents/internal-it-help-agent",
+      "description": "An IT question is answered from a small runbook. Password and access questions hit the runbook. Everything else says it does not know.",
+      "test_status": "executed",
+      "screenshot": "workflows/ai-agents/internal-it-help-agent/screenshot.png"
+    },
+    {
+      "id": "proposal-draft-agent",
+      "title": "Proposal draft agent",
+      "category": "ai-agents",
+      "apps": [
+        "AI Agent",
+        "Anthropic",
+        "Google Docs via Slack",
+        "Slack"
+      ],
+      "difficulty": "advanced",
+      "tags": [
+        "proposal",
+        "claude"
+      ],
+      "path": "workflows/ai-agents/proposal-draft-agent",
+      "description": "A proposal question is answered from the pricing book. The live branch uses Claude and posts the draft to Slack for a human to edit.",
+      "test_status": "executed",
+      "screenshot": "workflows/ai-agents/proposal-draft-agent/screenshot.png"
+    },
+    {
+      "id": "researcher-writer-handoff",
+      "title": "Researcher agent hands off to a writer",
+      "category": "ai-agents",
+      "apps": [
+        "AI Agent",
+        "Groq",
+        "Google Sheets",
+        "Slack"
+      ],
+      "difficulty": "advanced",
+      "tags": [
+        "multi-agent",
+        "handoff"
+      ],
+      "path": "workflows/ai-agents/researcher-writer-handoff",
+      "description": "A research note is stored and a writer-ready summary is produced. The live canvas has an agent plus a sheet so the research and the draft are separate records.",
+      "test_status": "executed",
+      "screenshot": "workflows/ai-agents/researcher-writer-handoff/screenshot.png"
+    },
+    {
+      "id": "cv-parsing-candidate-scoring",
+      "title": "CV parsing and candidate scoring into a sheet",
+      "category": "hr-recruiting",
+      "apps": [
+        "Gmail",
+        "Google Sheets",
+        "Slack"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "cv",
+        "ats",
+        "scoring",
+        "hr"
+      ],
+      "path": "workflows/hr-recruiting/cv-parsing-candidate-scoring",
+      "description": "A resume's text is scored against must-have and nice-to-have skills. The route is screen, hold, or reject as a recommendation. The sheet is the lightweight ATS, and Slack hears about candidates worth a screen.",
+      "test_status": "executed",
+      "screenshot": "workflows/hr-recruiting/cv-parsing-candidate-scoring/screenshot.png"
+    },
+    {
+      "id": "interview-schedule-from-application",
+      "title": "Schedule an interview from an application",
+      "category": "hr-recruiting",
+      "apps": [
+        "Webhook",
+        "Google Calendar",
+        "Gmail",
+        "Google Sheets"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "interview",
+        "scheduling"
+      ],
+      "path": "workflows/hr-recruiting/interview-schedule-from-application",
+      "description": "A candidate who already scored as a screen is offered a calendar hold and a confirmation draft.",
+      "test_status": "executed",
+      "screenshot": "workflows/hr-recruiting/interview-schedule-from-application/screenshot.png"
+    },
+    {
+      "id": "candidate-nurture",
+      "title": "Candidate nurture note",
+      "category": "hr-recruiting",
+      "apps": [
+        "Schedule",
+        "Gmail",
+        "Google Sheets"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "nurture",
+        "candidates"
+      ],
+      "path": "workflows/hr-recruiting/candidate-nurture",
+      "description": "A candidate on hold gets a nurture draft instead of silence. The sheet records the touch.",
+      "test_status": "executed",
+      "screenshot": "workflows/hr-recruiting/candidate-nurture/screenshot.png"
+    },
+    {
+      "id": "offer-letter-data-pack",
+      "title": "Offer-letter data pack",
+      "category": "hr-recruiting",
+      "apps": [
+        "Google Sheets",
+        "Gmail",
+        "Slack"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "offer"
+      ],
+      "path": "workflows/hr-recruiting/offer-letter-data-pack",
+      "description": "A candidate who cleared the screen is packaged as an offer data row: role, score, and the fields a letter needs. Slack asks a human to approve before any letter is drafted.",
+      "test_status": "executed",
+      "screenshot": "workflows/hr-recruiting/offer-letter-data-pack/screenshot.png"
+    },
+    {
+      "id": "referral-intake",
+      "title": "Employee referral into the candidate sheet",
+      "category": "hr-recruiting",
+      "apps": [
+        "n8n Form",
+        "Google Sheets",
+        "Slack"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "referral"
+      ],
+      "path": "workflows/hr-recruiting/referral-intake",
+      "description": "A referral form is scored with the same rubric as a direct applicant and logged with the referrer's name.",
+      "test_status": "executed",
+      "screenshot": "workflows/hr-recruiting/referral-intake/screenshot.png"
+    },
+    {
+      "id": "rejection-feedback-draft",
+      "title": "Rejection note with specific feedback",
+      "category": "hr-recruiting",
+      "apps": [
+        "Gmail",
+        "Google Sheets"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "rejection"
+      ],
+      "path": "workflows/hr-recruiting/rejection-feedback-draft",
+      "description": "A candidate the rubric marks reject gets a draft that names the missing must-have skills. A person sends it.",
+      "test_status": "executed",
+      "screenshot": "workflows/hr-recruiting/rejection-feedback-draft/screenshot.png"
+    },
+    {
+      "id": "stripe-bank-reconciliation",
+      "title": "Stripe charges versus the bank, with a sheet of exceptions",
+      "category": "finance",
+      "apps": [
+        "Stripe",
+        "Google Sheets",
+        "Slack"
+      ],
+      "difficulty": "advanced",
+      "tags": [
+        "stripe",
+        "reconciliation",
+        "finance"
+      ],
+      "path": "workflows/finance/stripe-bank-reconciliation",
+      "description": "Stripe charges are matched to bank lines on amount and currency within 50 cents. Matches are counted. Leftovers on either side become the exception report in Sheets and a Slack summary.",
+      "test_status": "executed",
+      "screenshot": "workflows/finance/stripe-bank-reconciliation/screenshot.png"
+    },
+    {
+      "id": "failed-payment-dunning",
+      "title": "Failed payment dunning sequence",
+      "category": "finance",
+      "apps": [
+        "Stripe",
+        "Gmail",
+        "Slack"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "dunning",
+        "stripe"
+      ],
+      "path": "workflows/finance/failed-payment-dunning",
+      "description": "A failed charge is placed on step 1, 2, or 3 from how many days have passed. The email is drafted. The last step is marked final.",
+      "test_status": "executed",
+      "screenshot": "workflows/finance/failed-payment-dunning/screenshot.png"
+    },
+    {
+      "id": "mrr-snapshot-weekly",
+      "title": "Weekly MRR snapshot",
+      "category": "finance",
+      "apps": [
+        "Schedule",
+        "Slack",
+        "Google Sheets"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "mrr"
+      ],
+      "path": "workflows/finance/mrr-snapshot-weekly",
+      "description": "New, expansion, contraction, and churned MRR are summed for the week and posted.",
+      "test_status": "executed",
+      "screenshot": "workflows/finance/mrr-snapshot-weekly/screenshot.png"
+    },
+    {
+      "id": "expense-policy-flagger",
+      "title": "Flag an expense that breaks policy",
+      "category": "finance",
+      "apps": [
+        "Webhook",
+        "Slack",
+        "Google Sheets"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "expenses",
+        "policy"
+      ],
+      "path": "workflows/finance/expense-policy-flagger",
+      "description": "An expense is approved, sent back for a receipt, marked as an exception, or rejected based on category caps and the merchant.",
+      "test_status": "executed",
+      "screenshot": "workflows/finance/expense-policy-flagger/screenshot.png"
+    },
+    {
+      "id": "stripe-payout-to-sheets",
+      "title": "Stripe payout lines onto a sheet",
+      "category": "finance",
+      "apps": [
+        "Stripe",
+        "Google Sheets",
+        "Slack"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "payouts",
+        "stripe"
+      ],
+      "path": "workflows/finance/stripe-payout-to-sheets",
+      "description": "A payout's charges are matched to the expected deposit. Anything left over is the sheet finance opens.",
+      "test_status": "executed",
+      "screenshot": "workflows/finance/stripe-payout-to-sheets/screenshot.png"
+    },
+    {
+      "id": "tax-ready-monthly-export",
+      "title": "Tax-ready monthly export",
+      "category": "finance",
+      "apps": [
+        "Schedule",
+        "Google Sheets",
+        "Gmail"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "tax",
+        "export"
+      ],
+      "path": "workflows/finance/tax-ready-monthly-export",
+      "description": "A month of revenue and tax collected is rolled up and emailed as the packet an accountant asked for.",
+      "test_status": "executed",
+      "screenshot": "workflows/finance/tax-ready-monthly-export/screenshot.png"
+    },
+    {
+      "id": "invoice-versus-payment",
+      "title": "Match an invoice to a payment",
+      "category": "finance",
+      "apps": [
+        "Google Sheets",
+        "Slack",
+        "Xero"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "cash-application"
+      ],
+      "path": "workflows/finance/invoice-versus-payment",
+      "description": "Open invoices are matched to payments on amount. Unmatched invoices stay in the exception list.",
+      "test_status": "executed",
+      "screenshot": "workflows/finance/invoice-versus-payment/screenshot.png"
+    },
+    {
+      "id": "vendor-spend-anomaly",
+      "title": "Vendor spend anomaly",
+      "category": "finance",
+      "apps": [
+        "Schedule",
+        "Slack",
+        "Google Sheets"
+      ],
+      "difficulty": "advanced",
+      "tags": [
+        "anomaly",
+        "spend"
+      ],
+      "path": "workflows/finance/vendor-spend-anomaly",
+      "description": "This month's vendor spend is compared with last month. A jump is visible in the signed delta and posted to Slack.",
+      "test_status": "executed",
+      "screenshot": "workflows/finance/vendor-spend-anomaly/screenshot.png"
+    }
+  ]
+}

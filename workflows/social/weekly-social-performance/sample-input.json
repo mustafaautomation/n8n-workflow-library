@@ -1,0 +1,16 @@
+{
+  "demo": true,
+  "period": "2026-W47",
+  "rows": [
+    {
+      "impressions": 12000,
+      "clicks": 340,
+      "follows": 28
+    }
+  ],
+  "previous": {
+    "impressions": 10000,
+    "clicks": 300,
+    "follows": 20
+  }
+}

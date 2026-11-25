@@ -1,0 +1,14 @@
+{
+  "demo": true,
+  "period": "2026-W47",
+  "rows": [
+    {
+      "spend": 900,
+      "revenue": 2400
+    }
+  ],
+  "previous": {
+    "spend": 1100,
+    "revenue": 2100
+  }
+}

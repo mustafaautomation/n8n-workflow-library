@@ -1,0 +1,18 @@
+{
+  "demo": true,
+  "period": "2026-11",
+  "rows": [
+    {
+      "revenue": 18200,
+      "mrr": 5000,
+      "cash": 64000,
+      "headcount": 4
+    }
+  ],
+  "previous": {
+    "revenue": 16000,
+    "mrr": 4500,
+    "cash": 70000,
+    "headcount": 4
+  }
+}

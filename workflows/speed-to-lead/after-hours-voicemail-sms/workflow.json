@@ -1,0 +1,368 @@
+{
+  "name": "After-hours voicemail to SMS",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## After-hours voicemail to SMS\n\nPortfolio demo only. This workflow is an original example for demonstration. It is not client work and it does not represent a deployment for any customer.\n\nRun **Run demo** to execute the offline rules engine. The live branch is used only when the incoming item sets `demo` to false and the placeholder credentials have been replaced.",
+        "height": 220,
+        "width": 520,
+        "color": 4
+      },
+      "id": "862757c7-4bd4-415a-b3e6-9b50f491586d",
+      "name": "Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -40
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "d105f5a9-8117-4abd-a8af-e4de2ca79e10",
+      "name": "Run demo",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        40,
+        280
+      ],
+      "notes": "CLI and the n8n editor start here. An empty manual run loads the bundled sample.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "after-hours-voicemail-sms",
+        "authentication": "none",
+        "responseMode": "lastNode",
+        "responseData": "firstEntryJson",
+        "options": {}
+      },
+      "id": "a529e26b-a731-4ea4-ae35-989c6c99d85e",
+      "name": "Inbound webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        40,
+        460
+      ],
+      "notes": "POST JSON to this path. Include demo:false only after credentials are connected.",
+      "notesInFlow": true,
+      "webhookId": "603477a3-4c6c-4b69-be34-005e4ccf8084"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "com.twilio.voice.insights.call-summary.complete"
+        ]
+      },
+      "id": "fb2a4f01-18ca-4c0c-9900-108ed43b84a3",
+      "name": "Twilio voice trigger",
+      "type": "n8n-nodes-base.twilioTrigger",
+      "typeVersion": 1,
+      "position": [
+        40,
+        640
+      ],
+      "credentials": {
+        "twilioApi": {
+          "id": "PLACEHOLDER_TWILIOAPI",
+          "name": "Twilio account"
+        }
+      },
+      "notes": "Voice event source for missed-call flows. The demo posts the sample call instead.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const sample = {\n  \"demo\": true,\n  \"phone\": \"+15555550111\",\n  \"firstName\": \"Rae\",\n  \"company\": \"Rae's office\",\n  \"source\": \"voicemail\",\n  \"receivedAt\": \"2026-11-25T02:10:00.000Z\"\n};\nconst incoming = $input.first()?.json ?? {};\nconst provided = Object.keys(incoming).filter((key) => incoming[key] !== undefined && incoming[key] !== null && incoming[key] !== '');\nconst base = provided.length ? { ...sample, ...incoming } : { ...sample };\nconst flag = incoming.demo;\nbase.demo = !(flag === false || flag === 'false' || flag === 0 || flag === '0');\nreturn [{ json: base }];\n"
+      },
+      "id": "57f264de-89c7-4cba-b086-d946b084db5a",
+      "name": "Normalize input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        340,
+        360
+      ],
+      "notes": "Merges the request over the bundled sample. demo stays true unless the caller explicitly turns it off.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nconst produced = (() => {\n\nconst received = Date.parse(item.receivedAt || new Date().toISOString());\nconst ageSeconds = Math.max(0, Math.round((Date.now() - received) / 1000));\nconst withinWindow = ageSeconds <= 15 * 60;\nconst owners = ['On-call'];\nconst bucket = Math.abs(hash(String(item.email || item.phone || 'lead'))) % owners.length;\nconst owner = item.owner || owners[bucket];\nconst first = item.firstName || 'there';\nconst company = item.company || 'your team';\nconst message = withinWindow\n  ? 'Hi ' + first + ', this is ' + owner + ' at Northwind. I just saw the ' + (item.source || 'request') + ' from ' + company + ' and can reply right now.'\n  : 'Hi ' + first + ', this is ' + owner + '. Sorry we missed the first minute. I can still help ' + company + ' today.';\nconst record = {\n  to: item.phone || '',\n  email: item.email || '',\n  from: '+15555550100',\n  owner,\n  message,\n  subject: 'Re: ' + (item.source || 'your request'),\n  body: message,\n  ageSeconds,\n  withinWindow,\n  channel: 'sms',\n};\nreturn {\n  summary: (withinWindow ? 'Inside' : 'Outside') + ' the 15-minute window. ' + owner + ' owns the sms reply.',\n  route: withinWindow ? 'instant' : 'late',\n  record,\n  slackText: owner + ' should answer ' + (item.email || item.phone) + ' (' + ageSeconds + 's old).',\n  actions: [{ app: 'sms', operation: 'send', payload: record }],\n};\nfunction hash(value) {\n  let h = 0;\n  for (let i = 0; i < value.length; i++) h = (h * 31 + value.charCodeAt(i)) >>> 0;\n  return h;\n}\n\n})();\nif (!produced || typeof produced.summary !== 'string' || !produced.summary.trim()) {\n  throw new Error('Apply rules must return a summary string');\n}\nreturn [{\n  json: {\n    ...item,\n    ...produced,\n    demo: item.demo !== false,\n  },\n}];\n"
+      },
+      "id": "640a2e3b-7d26-4f5e-8c3a-dc8e624ffb11",
+      "name": "Apply rules",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        620,
+        360
+      ],
+      "notes": "Deterministic stand-in for the model or enrichment API. Replace or precede this with a live model node when you turn demo mode off.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "1fb4fcce-d08d-48d0-a2b0-8d8581c4f454",
+              "leftValue": "={{ $json.demo }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "9c8abad1-e21d-40da-bf55-0e5f1ce8a45a",
+      "name": "Demo mode?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        900,
+        360
+      ],
+      "notes": "True: package the offline result. False: run the credentialed apps.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nreturn [{\n  json: {\n    demo: true,\n    status: 'demo_ready',\n    workflow: 'after-hours-voicemail-sms',\n    summary: item.summary,\n    route: item.route ?? null,\n    record: item.record ?? {},\n    actions: item.actions ?? [],\n    slackText: item.slackText ?? item.summary,\n    notes: 'Demo mode did not call external apps. Send {\"demo\": false} after placeholder credentials are replaced.',\n  },\n}];\n"
+      },
+      "id": "b2725af9-67f9-4ea7-a013-22c062285fac",
+      "name": "Package demo result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "sms",
+        "operation": "send",
+        "from": "={{ $json.record.from || '+15555550100' }}",
+        "to": "={{ $json.record.to || $json.record.phone || $json.phone }}",
+        "message": "={{ $json.record.message || $json.slackText || $json.summary }}",
+        "twiml": "={{ $json.record.twiml || '<Response><Say>We will call you back shortly.</Say></Response>' }}"
+      },
+      "id": "d8804274-bab9-4f4e-ad4f-bb73657ffe5b",
+      "name": "Send SMS",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        1180,
+        760
+      ],
+      "credentials": {
+        "twilioApi": {
+          "id": "PLACEHOLDER_TWILIOAPI",
+          "name": "Twilio account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $json.record.email || $json.email || 'lead@example.com' }}",
+        "subject": "={{ $json.record.subject || $json.summary }}",
+        "message": "={{ $json.record.body || $json.record.message || $json.summary }}",
+        "emailType": "text",
+        "messageId": "={{ $json.record.messageId || 'MESSAGE_ID' }}",
+        "labelIds": [
+          "Label_1"
+        ]
+      },
+      "id": "5c40ba0b-4732-4d35-8211-0dfe91331c51",
+      "name": "Send Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1460,
+        760
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "PLACEHOLDER_GMAILOAUTH2",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "post",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "#on-call"
+        },
+        "text": "={{ $json.slackText || $json.summary }}",
+        "otherOptions": {}
+      },
+      "id": "4fa4a87c-01c4-4df3-90e4-5757e4b32904",
+      "name": "Post #on-call",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1740,
+        760
+      ],
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "PLACEHOLDER_SLACKOAUTH2API",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Live path\n\nReplace every `PLACEHOLDER_*` credential, then POST the sample with `\"demo\": false`.\n\nThe nodes on this branch use the `record` and `actions` fields produced by Apply rules.",
+        "height": 180,
+        "width": 420,
+        "color": 6
+      },
+      "id": "9cd39e46-ac2b-4f9f-8a13-35ba8e6fd671",
+      "name": "Live path",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        520
+      ]
+    }
+  ],
+  "connections": {
+    "Run demo": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inbound webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Twilio voice trigger": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize input": {
+      "main": [
+        [
+          {
+            "node": "Apply rules",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply rules": {
+      "main": [
+        [
+          {
+            "node": "Demo mode?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Demo mode?": {
+      "main": [
+        [
+          {
+            "node": "Package demo result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send SMS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send SMS": {
+      "main": [
+        [
+          {
+            "node": "Send Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Gmail": {
+      "main": [
+        [
+          {
+            "node": "Post #on-call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "description": "An after-hours voicemail is transcribed into the sample text and answered with an SMS that promises the morning window, plus an email to the on-call alias."
+  },
+  "active": false
+}

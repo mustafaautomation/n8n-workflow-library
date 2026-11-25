@@ -1,0 +1,293 @@
+{
+  "name": "Newsletter digest posted to Slack",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Newsletter digest posted to Slack\n\nPortfolio demo only. This workflow is an original example for demonstration. It is not client work and it does not represent a deployment for any customer.\n\nRun **Run demo** to execute the offline rules engine. The live branch is used only when the incoming item sets `demo` to false and the placeholder credentials have been replaced.",
+        "height": 220,
+        "width": 520,
+        "color": 4
+      },
+      "id": "cd73b03f-c431-4331-aa7d-f1df788f24ba",
+      "name": "Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -40
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "dbb76307-f39e-4c97-859a-d2d876aac8bd",
+      "name": "Run demo",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        40,
+        280
+      ],
+      "notes": "CLI and the n8n editor start here. An empty manual run loads the bundled sample.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "newsletter-digest-to-slack",
+        "authentication": "none",
+        "responseMode": "lastNode",
+        "responseData": "firstEntryJson",
+        "options": {}
+      },
+      "id": "22adecfd-c891-49b2-b9bc-6cc36058293d",
+      "name": "Inbound webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        40,
+        460
+      ],
+      "notes": "POST JSON to this path. Include demo:false only after credentials are connected.",
+      "notesInFlow": true,
+      "webhookId": "15a043e1-8892-44c5-a0f3-25593f736ed5"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "event": "messageReceived",
+        "simple": true
+      },
+      "id": "493edf2f-69f2-4687-8d52-844b8aa4cca2",
+      "name": "Gmail trigger",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        40,
+        640
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "PLACEHOLDER_GMAILOAUTH2",
+          "name": "Gmail account"
+        }
+      },
+      "notes": "Polls the mailbox once credentials replace the placeholder. Tests do not call Gmail.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const sample = {\n  \"demo\": true,\n  \"from\": \"news@example.com\",\n  \"subject\": \"Pricing moves this week\",\n  \"body\": \"A short note on pricing changes and a new demo format.\"\n};\nconst incoming = $input.first()?.json ?? {};\nconst provided = Object.keys(incoming).filter((key) => incoming[key] !== undefined && incoming[key] !== null && incoming[key] !== '');\nconst base = provided.length ? { ...sample, ...incoming } : { ...sample };\nconst flag = incoming.demo;\nbase.demo = !(flag === false || flag === 'false' || flag === 0 || flag === '0');\nreturn [{ json: base }];\n"
+      },
+      "id": "44d7abb6-b1ee-44b0-968d-a4621e09e4f1",
+      "name": "Normalize input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        340,
+        360
+      ],
+      "notes": "Merges the request over the bundled sample. demo stays true unless the caller explicitly turns it off.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nconst produced = (() => {\n\nconst haystack = String(item.body || item.body || item.subject || item.summary || '').toLowerCase();\nconst hits = [];\nif (['invoice', 'refund', 'charge', 'payment'].some((word) => haystack.includes(word))) {\n  hits.push({ id: 'billing', label: 'Billing', weight: 3 });\n}\nif (['demo', 'pricing', 'quote', 'proposal'].some((word) => haystack.includes(word))) {\n  hits.push({ id: 'sales', label: 'Sales', weight: 2 });\n}\nif (['broken', 'error', 'can\\'t', 'cannot', 'bug'].some((word) => haystack.includes(word))) {\n  hits.push({ id: 'support', label: 'Support', weight: 2 });\n}\nif (['legal', 'board', 'urgent'].some((word) => haystack.includes(word))) {\n  hits.push({ id: 'vip', label: 'VIP', weight: 4 });\n}\nhits.sort((a, b) => b.weight - a.weight);\nconst winner = hits[0] || { id: 'sales', label: 'sales', weight: 0 };\nconst draft = item.draft || ('Thanks for the note. We logged this as ' + winner.label + ' and will follow up shortly.');\nconst record = {\n  label: winner.id,\n  labelName: winner.label,\n  confidence: hits.length ? Math.min(0.95, 0.45 + hits.length * 0.15) : 0.3,\n  subject: item.subject || winner.label,\n  body: draft,\n  email: item.from || item.email || '',\n  priority: winner.id,\n  title: (item.subject || winner.label),\n};\nreturn {\n  summary: 'Newsletter classified as ' + winner.label + ' (' + record.confidence.toFixed(2) + ').',\n  route: winner.id,\n  record,\n  slackText: winner.label + ': ' + (item.subject || haystack.slice(0, 80)),\n  actions: [{ app: 'mailbox', operation: 'label-and-draft', payload: record }],\n};\n\n})();\nif (!produced || typeof produced.summary !== 'string' || !produced.summary.trim()) {\n  throw new Error('Apply rules must return a summary string');\n}\nreturn [{\n  json: {\n    ...item,\n    ...produced,\n    demo: item.demo !== false,\n  },\n}];\n"
+      },
+      "id": "5ff44d9d-9667-4a37-b6a4-d29c99f4141a",
+      "name": "Apply rules",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        620,
+        360
+      ],
+      "notes": "Deterministic stand-in for the model or enrichment API. Replace or precede this with a live model node when you turn demo mode off.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0ec6c962-09bd-4854-984c-97933b1fed86",
+              "leftValue": "={{ $json.demo }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "02081dbe-06f3-4106-a764-02a2289c4686",
+      "name": "Demo mode?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        900,
+        360
+      ],
+      "notes": "True: package the offline result. False: run the credentialed apps.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nreturn [{\n  json: {\n    demo: true,\n    status: 'demo_ready',\n    workflow: 'newsletter-digest-to-slack',\n    summary: item.summary,\n    route: item.route ?? null,\n    record: item.record ?? {},\n    actions: item.actions ?? [],\n    slackText: item.slackText ?? item.summary,\n    notes: 'Demo mode did not call external apps. Send {\"demo\": false} after placeholder credentials are replaced.',\n  },\n}];\n"
+      },
+      "id": "a909f73d-3e8a-44e0-9ec2-c43fb09f4cb7",
+      "name": "Package demo result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "post",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "#reading"
+        },
+        "text": "={{ $json.slackText || $json.summary }}",
+        "otherOptions": {}
+      },
+      "id": "75ff2a4d-c575-46e5-804b-39f466681e8e",
+      "name": "Post #reading",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1180,
+        760
+      ],
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "PLACEHOLDER_SLACKOAUTH2API",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Live path\n\nReplace every `PLACEHOLDER_*` credential, then POST the sample with `\"demo\": false`.\n\nThe nodes on this branch use the `record` and `actions` fields produced by Apply rules.",
+        "height": 180,
+        "width": 420,
+        "color": 6
+      },
+      "id": "ae6e5e92-15b7-4861-bb16-20b3ad681f04",
+      "name": "Live path",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        520
+      ]
+    }
+  ],
+  "connections": {
+    "Run demo": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inbound webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail trigger": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize input": {
+      "main": [
+        [
+          {
+            "node": "Apply rules",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply rules": {
+      "main": [
+        [
+          {
+            "node": "Demo mode?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Demo mode?": {
+      "main": [
+        [
+          {
+            "node": "Package demo result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Post #reading",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "description": "A newsletter is classified and reduced to a one-line Slack post so the inbox can be archived."
+  },
+  "active": false
+}

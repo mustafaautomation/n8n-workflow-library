@@ -1,0 +1,14 @@
+{
+  "demo": true,
+  "firstName": "Nora",
+  "lastName": "Rahman",
+  "email": "nora@brightline.example",
+  "company": "Brightline Studio",
+  "title": "Head of Operations",
+  "employees": 42,
+  "budget": 8000,
+  "source": "demo",
+  "utmSource": "linkedin",
+  "utmMedium": "cpc",
+  "utmCampaign": "ops-audit-q1"
+}

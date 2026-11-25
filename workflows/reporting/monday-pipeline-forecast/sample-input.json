@@ -1,0 +1,16 @@
+{
+  "demo": true,
+  "period": "2026-W48",
+  "rows": [
+    {
+      "commit": 12000,
+      "bestCase": 20000,
+      "pipeline": 48000
+    }
+  ],
+  "previous": {
+    "commit": 10000,
+    "bestCase": 18000,
+    "pipeline": 51000
+  }
+}

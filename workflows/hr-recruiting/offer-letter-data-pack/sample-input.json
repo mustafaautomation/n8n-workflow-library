@@ -1,0 +1,9 @@
+{
+  "demo": true,
+  "name": "Leila Haddad",
+  "email": "leila@example.com",
+  "role": "Automation engineer",
+  "years": 5,
+  "workAuth": true,
+  "resumeText": "Five years building JavaScript services, SQL reporting, and n8n workflows for HubSpot teams."
+}

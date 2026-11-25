@@ -1,0 +1,308 @@
+{
+  "name": "Rejection note with specific feedback",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Rejection note with specific feedback\n\nPortfolio demo only. This workflow is an original example for demonstration. It is not client work and it does not represent a deployment for any customer.\n\nRun **Run demo** to execute the offline rules engine. The live branch is used only when the incoming item sets `demo` to false and the placeholder credentials have been replaced.",
+        "height": 220,
+        "width": 520,
+        "color": 4
+      },
+      "id": "591e3dda-693c-4307-b506-620182a58c9f",
+      "name": "Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -40
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "8c1eddc3-d17d-4ec3-a6b7-43dcfc6c88e1",
+      "name": "Run demo",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        40,
+        280
+      ],
+      "notes": "CLI and the n8n editor start here. An empty manual run loads the bundled sample.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "rejection-feedback-draft",
+        "authentication": "none",
+        "responseMode": "lastNode",
+        "responseData": "firstEntryJson",
+        "options": {}
+      },
+      "id": "47aff1b0-9999-4a0e-b627-3a73c8eb3103",
+      "name": "Inbound webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        40,
+        460
+      ],
+      "notes": "POST JSON to this path. Include demo:false only after credentials are connected.",
+      "notesInFlow": true,
+      "webhookId": "105f9f94-4830-444b-841d-928ad425f026"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const sample = {\n  \"demo\": true,\n  \"name\": \"Leila Haddad\",\n  \"email\": \"leila@example.com\",\n  \"role\": \"Automation engineer\",\n  \"years\": 1,\n  \"workAuth\": true,\n  \"resumeText\": \"I enjoy writing and customer calls.\"\n};\nconst incoming = $input.first()?.json ?? {};\nconst provided = Object.keys(incoming).filter((key) => incoming[key] !== undefined && incoming[key] !== null && incoming[key] !== '');\nconst base = provided.length ? { ...sample, ...incoming } : { ...sample };\nconst flag = incoming.demo;\nbase.demo = !(flag === false || flag === 'false' || flag === 0 || flag === '0');\nreturn [{ json: base }];\n"
+      },
+      "id": "fedd0e2d-c40f-4dd6-94a9-2f4f5892cd9a",
+      "name": "Normalize input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        340,
+        360
+      ],
+      "notes": "Merges the request over the bundled sample. demo stays true unless the caller explicitly turns it off.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nconst produced = (() => {\n\nconst text = String(item.resumeText || item.cv || '').toLowerCase();\nconst must = ['javascript', 'sql'];\nconst nice = ['n8n'];\nconst haveMust = must.filter((skill) => text.includes(skill));\nconst haveNice = nice.filter((skill) => text.includes(skill));\nconst experience = Number(item.years || (text.match(/(\\d+)\\s+\\+?\\s*years/) || [])[1] || 0);\nlet score = haveMust.length * 20 + haveNice.length * 8;\nif (experience >= 3) score += 15;\nif (item.workAuth === false) score -= 25;\nscore = Math.max(0, Math.min(100, score));\nconst route = haveMust.length < Math.ceil(must.length / 2) ? 'reject' : score >= 70 ? 'screen' : 'hold';\nconst record = {\n  name: item.name || 'Candidate',\n  email: item.email || '',\n  role: item.role || 'Open role',\n  score,\n  route,\n  haveMust: haveMust.join(', '),\n  haveNice: haveNice.join(', '),\n  experience,\n  title: (item.name || 'Candidate') + ' \u2014 ' + (item.role || 'role'),\n};\nreturn {\n  summary: record.name + ' scored ' + score + ' for ' + record.role + ' (' + route + ').',\n  route,\n  record,\n  slackText: route.toUpperCase() + ' ' + record.name + ' (' + score + ') for ' + record.role,\n  actions: [{ app: 'ATS', operation: route, payload: record }],\n};\n\n})();\nif (!produced || typeof produced.summary !== 'string' || !produced.summary.trim()) {\n  throw new Error('Apply rules must return a summary string');\n}\nreturn [{\n  json: {\n    ...item,\n    ...produced,\n    demo: item.demo !== false,\n  },\n}];\n"
+      },
+      "id": "f84fa287-b993-4b83-a3d8-0e9a0cac3cde",
+      "name": "Apply rules",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        620,
+        360
+      ],
+      "notes": "Deterministic stand-in for the model or enrichment API. Replace or precede this with a live model node when you turn demo mode off.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "9e045960-a8b1-4cb7-bc73-d1c300e1f40c",
+              "leftValue": "={{ $json.demo }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "00e090ee-3bc1-4f82-99b5-a0f3038b8765",
+      "name": "Demo mode?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        900,
+        360
+      ],
+      "notes": "True: package the offline result. False: run the credentialed apps.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nreturn [{\n  json: {\n    demo: true,\n    status: 'demo_ready',\n    workflow: 'rejection-feedback-draft',\n    summary: item.summary,\n    route: item.route ?? null,\n    record: item.record ?? {},\n    actions: item.actions ?? [],\n    slackText: item.slackText ?? item.summary,\n    notes: 'Demo mode did not call external apps. Send {\"demo\": false} after placeholder credentials are replaced.',\n  },\n}];\n"
+      },
+      "id": "2293bd28-209c-4850-b27f-7190e4044816",
+      "name": "Package demo result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "draft",
+        "operation": "create",
+        "sendTo": "={{ $json.record.email || $json.email || 'lead@example.com' }}",
+        "subject": "={{ $json.record.subject || $json.summary }}",
+        "message": "={{ $json.record.body || $json.record.message || $json.summary }}",
+        "emailType": "text",
+        "messageId": "={{ $json.record.messageId || 'MESSAGE_ID' }}",
+        "labelIds": [
+          "Label_1"
+        ]
+      },
+      "id": "4a5ce3cc-d396-448d-acc2-f3cc1bbb3b75",
+      "name": "Create Gmail draft",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1180,
+        760
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "PLACEHOLDER_GMAILOAUTH2",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "sheet",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "YOUR_SPREADSHEET_ID"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Decisions"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "67976ec7-aa2b-47f6-80a5-1af9866966f8",
+      "name": "Append Decisions",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1460,
+        760
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PLACEHOLDER_GOOGLESHEETSOAUTH2API",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Live path\n\nReplace every `PLACEHOLDER_*` credential, then POST the sample with `\"demo\": false`.\n\nThe nodes on this branch use the `record` and `actions` fields produced by Apply rules.",
+        "height": 180,
+        "width": 420,
+        "color": 6
+      },
+      "id": "7c5ef0f4-2556-4f22-a35a-ff596330559a",
+      "name": "Live path",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        520
+      ]
+    }
+  ],
+  "connections": {
+    "Run demo": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inbound webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize input": {
+      "main": [
+        [
+          {
+            "node": "Apply rules",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply rules": {
+      "main": [
+        [
+          {
+            "node": "Demo mode?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Demo mode?": {
+      "main": [
+        [
+          {
+            "node": "Package demo result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Gmail draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Gmail draft": {
+      "main": [
+        [
+          {
+            "node": "Append Decisions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "description": "A candidate the rubric marks reject gets a draft that names the missing must-have skills. A person sends it."
+  },
+  "active": false
+}

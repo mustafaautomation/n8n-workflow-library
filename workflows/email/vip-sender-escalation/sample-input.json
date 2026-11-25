@@ -1,0 +1,6 @@
+{
+  "demo": true,
+  "from": "board@harbor.example",
+  "subject": "Board pack",
+  "body": "Legal needs the board numbers today. This is urgent."
+}

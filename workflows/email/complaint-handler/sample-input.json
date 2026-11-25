@@ -1,0 +1,6 @@
+{
+  "demo": true,
+  "from": "pat@example.com",
+  "subject": "Remove me",
+  "body": "Unsubscribe me and stop emailing this address."
+}

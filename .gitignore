@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.n8n/
+node_modules/
+.ci/
+test-results/
+.DS_Store

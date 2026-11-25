@@ -1,0 +1,16 @@
+{
+  "demo": true,
+  "period": "2026-W47",
+  "rows": [
+    {
+      "atRisk": 4,
+      "saved": 1,
+      "churned": 1
+    }
+  ],
+  "previous": {
+    "atRisk": 3,
+    "saved": 2,
+    "churned": 0
+  }
+}

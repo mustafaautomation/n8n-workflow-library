@@ -1,0 +1,337 @@
+{
+  "name": "Outbound domain enrichment into the CRM",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Outbound domain enrichment into the CRM\n\nPortfolio demo only. This workflow is an original example for demonstration. It is not client work and it does not represent a deployment for any customer.\n\nRun **Run demo** to execute the offline rules engine. The live branch is used only when the incoming item sets `demo` to false and the placeholder credentials have been replaced.",
+        "height": 220,
+        "width": 520,
+        "color": 4
+      },
+      "id": "af289851-5244-438d-a0b9-b3d01ac151fa",
+      "name": "Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -40
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "632c7515-7d6d-458a-bb1e-15e404c6f996",
+      "name": "Run demo",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        40,
+        280
+      ],
+      "notes": "CLI and the n8n editor start here. An empty manual run loads the bundled sample.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "outbound-domain-enrichment",
+        "authentication": "none",
+        "responseMode": "lastNode",
+        "responseData": "firstEntryJson",
+        "options": {}
+      },
+      "id": "64994eec-cc56-48dc-acb5-277d1c328ed9",
+      "name": "Inbound webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        40,
+        460
+      ],
+      "notes": "POST JSON to this path. Include demo:false only after credentials are connected.",
+      "notesInFlow": true,
+      "webhookId": "1f6d72ca-f8f6-4118-8e11-aee5c242ab5c"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const sample = {\n  \"demo\": true,\n  \"email\": \"ada@northwind.example\",\n  \"company\": \"Northwind Supplies\",\n  \"domain\": \"northwind.example\",\n  \"employees\": 80,\n  \"title\": \"Founder\",\n  \"source\": \"outbound\",\n  \"budget\": 0\n};\nconst incoming = $input.first()?.json ?? {};\nconst provided = Object.keys(incoming).filter((key) => incoming[key] !== undefined && incoming[key] !== null && incoming[key] !== '');\nconst base = provided.length ? { ...sample, ...incoming } : { ...sample };\nconst flag = incoming.demo;\nbase.demo = !(flag === false || flag === 'false' || flag === 0 || flag === '0');\nreturn [{ json: base }];\n"
+      },
+      "id": "4598eea3-20bc-4dc1-8353-27f46d2af490",
+      "name": "Normalize input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        340,
+        360
+      ],
+      "notes": "Merges the request over the bundled sample. demo stays true unless the caller explicitly turns it off.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nconst produced = (() => {\n\nconst email = String(item.email || '').trim().toLowerCase();\nconst company = String(item.company || 'Unknown company').trim();\nconst source = String(item.source || 'unknown').trim().toLowerCase();\nconst employees = Number(item.employees || item.headcount || 0);\nconst budget = Number(item.budget || 0);\nconst title = String(item.title || '').toLowerCase();\nconst domain = email.includes('@') ? email.split('@')[1] : '';\nconst freeDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com'];\nconst intentSources = ['outbound', 'referral'];\nlet score = 15;\nconst reasons = [];\nif (email && !freeDomains.includes(domain)) {\n  score += 15;\n  reasons.push('work email');\n} else if (email) {\n  reasons.push('free inbox, keep it in nurture');\n}\nif (employees >= 50) {\n  score += 20;\n  reasons.push('headcount at or above 50');\n} else if (employees >= 10) {\n  score += 10;\n  reasons.push('team of 10 or more');\n}\nif (intentSources.includes(source)) {\n  score += 25;\n  reasons.push('high-intent source: ' + source);\n}\nif (budget >= 999999) {\n  score += 15;\n  reasons.push('budget at or above 999999');\n}\nif (/(founder|owner|vp|head|director|ceo|cto|cmo)/.test(title)) {\n  score += 10;\n  reasons.push('buyer title');\n}\nscore = Math.max(0, Math.min(100, score));\nlet tier = score >= 60 ? 'sql' : score >= 35 ? 'mql' : 'nurture';\nconst known = Array.isArray(item.knownEmails) ? item.knownEmails.map((value) => String(value).toLowerCase()) : [];\nif (email && known.includes(email)) tier = 'duplicate';\nconst record = {\n  email,\n  firstName: item.firstName || '',\n  lastName: item.lastName || '',\n  company,\n  title: item.title || '',\n  source,\n  employees,\n  budget,\n  score,\n  tier,\n  reasons: reasons.join('; '),\n  dealName: company + ' \u2014 ' + tier.toUpperCase(),\n  amount: budget,\n  stage: tier === 'sql' ? 'appointmentscheduled' : 'qualifiedtobuy',\n};\nreturn {\n  summary: tier === 'duplicate'\n    ? email + ' is already on file. No new HubSpot record is required.'\n    : company + ' (' + email + ') scored ' + score + ' and landed in ' + tier + ' for HubSpot.',\n  route: tier,\n  record,\n  slackText: tier.toUpperCase() + ' lead ' + email + ' at ' + company + ' scored ' + score + '. ' + reasons[0],\n  actions: [\n    { app: 'HubSpot', operation: 'upsert', payload: record },\n  ],\n};\n\n})();\nif (!produced || typeof produced.summary !== 'string' || !produced.summary.trim()) {\n  throw new Error('Apply rules must return a summary string');\n}\nreturn [{\n  json: {\n    ...item,\n    ...produced,\n    demo: item.demo !== false,\n  },\n}];\n"
+      },
+      "id": "1e120a7a-4b6d-45b7-a020-16bad26c0131",
+      "name": "Apply rules",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        620,
+        360
+      ],
+      "notes": "Deterministic stand-in for the model or enrichment API. Replace or precede this with a live model node when you turn demo mode off.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "8d0426ca-a1e5-4f8e-bc38-b0047a11c979",
+              "leftValue": "={{ $json.demo }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "75c6ad0f-fe3a-4b57-b0ae-a7bfbfe9de05",
+      "name": "Demo mode?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        900,
+        360
+      ],
+      "notes": "True: package the offline result. False: run the credentialed apps.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nreturn [{\n  json: {\n    demo: true,\n    status: 'demo_ready',\n    workflow: 'outbound-domain-enrichment',\n    summary: item.summary,\n    route: item.route ?? null,\n    record: item.record ?? {},\n    actions: item.actions ?? [],\n    slackText: item.slackText ?? item.summary,\n    notes: 'Demo mode did not call external apps. Send {\"demo\": false} after placeholder credentials are replaced.',\n  },\n}];\n"
+      },
+      "id": "61ae79de-ace9-42a9-8b3b-d8d37c862de1",
+      "name": "Package demo result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://example.com/enrich",
+        "authentication": "none",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.record }}",
+        "options": {}
+      },
+      "id": "3e6b1d1b-4741-4b4a-8649-becd7919d51b",
+      "name": "HTTP POST",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1180,
+        760
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "contact",
+        "operation": "upsert",
+        "email": "={{ $json.record.email || $json.email }}",
+        "additionalFields": {
+          "firstName": "={{ $json.record.firstName || $json.firstName }}",
+          "lastName": "={{ $json.record.lastName || $json.lastName }}",
+          "companyName": "={{ $json.record.company || $json.company }}"
+        }
+      },
+      "id": "b31a76fa-f84b-447d-aaa7-8b5894b9288f",
+      "name": "Upsert HubSpot contact",
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2.2,
+      "position": [
+        1460,
+        760
+      ],
+      "credentials": {
+        "hubspotOAuth2Api": {
+          "id": "PLACEHOLDER_HUBSPOTOAUTH2API",
+          "name": "HubSpot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "sheet",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "YOUR_SPREADSHEET_ID"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Outbound"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "762476a2-a6ec-449e-bd0c-6360d571aa37",
+      "name": "Append Outbound",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1740,
+        760
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PLACEHOLDER_GOOGLESHEETSOAUTH2API",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Live path\n\nReplace every `PLACEHOLDER_*` credential, then POST the sample with `\"demo\": false`.\n\nThe nodes on this branch use the `record` and `actions` fields produced by Apply rules.",
+        "height": 180,
+        "width": 420,
+        "color": 6
+      },
+      "id": "34dfa8b8-b256-429e-b139-918758963f28",
+      "name": "Live path",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        520
+      ]
+    }
+  ],
+  "connections": {
+    "Run demo": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inbound webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize input": {
+      "main": [
+        [
+          {
+            "node": "Apply rules",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply rules": {
+      "main": [
+        [
+          {
+            "node": "Demo mode?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Demo mode?": {
+      "main": [
+        [
+          {
+            "node": "Package demo result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP POST",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP POST": {
+      "main": [
+        [
+          {
+            "node": "Upsert HubSpot contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert HubSpot contact": {
+      "main": [
+        [
+          {
+            "node": "Append Outbound",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "description": "A domain and a guessed contact are scored and queued. The live branch can call an enrichment HTTP API before the HubSpot upsert."
+  },
+  "active": false
+}

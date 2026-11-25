@@ -1,0 +1,9 @@
+{
+  "demo": true,
+  "firstName": "there",
+  "phone": "+15555550198",
+  "company": "the caller",
+  "source": "missed-call",
+  "receivedAt": "2026-11-25T08:01:00.000Z",
+  "afterHours": false
+}

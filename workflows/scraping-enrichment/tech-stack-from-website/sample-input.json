@@ -1,0 +1,6 @@
+{
+  "demo": true,
+  "url": "https://example.com",
+  "html": "<title>Fieldnote</title><script src='https://example.com/gtm.js'></script>",
+  "company": "Fieldnote"
+}

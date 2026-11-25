@@ -1,0 +1,8 @@
+{
+  "demo": true,
+  "from": "ada@northwind.example",
+  "subject": "Checkout returns 500",
+  "body": "The checkout is broken and returns a 500 after submit.",
+  "email": "ada@northwind.example",
+  "ageHours": 6
+}

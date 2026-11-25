@@ -1,0 +1,11 @@
+{
+  "demo": true,
+  "orderId": "WC-8831",
+  "email": "buyer@example.com",
+  "total": 74,
+  "currency": "USD",
+  "country": "US",
+  "financialStatus": "paid",
+  "itemCount": 2,
+  "shippingMethod": "standard"
+}

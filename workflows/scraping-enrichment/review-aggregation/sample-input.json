@@ -1,0 +1,6 @@
+{
+  "demo": true,
+  "from": "guest@example.com",
+  "subject": "New review",
+  "body": "The delivery was broken and the box arrived open."
+}

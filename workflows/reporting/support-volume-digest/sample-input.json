@@ -1,0 +1,16 @@
+{
+  "demo": true,
+  "period": "2026-W47",
+  "rows": [
+    {
+      "billing": 12,
+      "technical": 9,
+      "account": 7
+    }
+  ],
+  "previous": {
+    "billing": 8,
+    "technical": 11,
+    "account": 6
+  }
+}

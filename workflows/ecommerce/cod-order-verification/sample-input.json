@@ -1,0 +1,12 @@
+{
+  "demo": true,
+  "orderId": "WC-990",
+  "email": "buyer@example.com",
+  "total": 320,
+  "currency": "USD",
+  "country": "US",
+  "financialStatus": "cod",
+  "itemCount": 2,
+  "shippingMethod": "standard",
+  "phone": "+15555550177"
+}

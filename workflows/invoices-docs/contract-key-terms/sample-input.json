@@ -1,0 +1,12 @@
+{
+  "demo": true,
+  "from": "legal@harbor.example",
+  "filename": "harbor-msa.pdf",
+  "vendor": "Harbor & Co",
+  "invoiceNumber": "MSA-12",
+  "subtotal": 24000,
+  "tax": 0,
+  "total": 24000,
+  "dueDate": "2027-01-01",
+  "text": "Vendor: Harbor & Co\nInvoice MSA-12\nSubtotal 24000.00\nTax 0.00\nTotal 24000.00\nDue 2027-01-01\n"
+}

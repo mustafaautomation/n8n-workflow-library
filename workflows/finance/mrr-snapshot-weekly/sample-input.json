@@ -1,0 +1,18 @@
+{
+  "demo": true,
+  "period": "2026-W47",
+  "rows": [
+    {
+      "newMrr": 298,
+      "expansion": 50,
+      "contraction": 0,
+      "churnedMrr": 49
+    }
+  ],
+  "previous": {
+    "newMrr": 149,
+    "expansion": 0,
+    "contraction": 20,
+    "churnedMrr": 0
+  }
+}

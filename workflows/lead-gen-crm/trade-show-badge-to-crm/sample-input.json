@@ -1,0 +1,15 @@
+{
+  "demo": true,
+  "firstName": "Nora",
+  "lastName": "Rahman",
+  "email": "kai@lumenfreight.example",
+  "company": "Lumen Freight",
+  "title": "Head of Operations",
+  "employees": 42,
+  "budget": 8000,
+  "source": "referral",
+  "utmSource": "linkedin",
+  "utmMedium": "cpc",
+  "utmCampaign": "ops-audit-q1",
+  "event": "Ops Summit"
+}

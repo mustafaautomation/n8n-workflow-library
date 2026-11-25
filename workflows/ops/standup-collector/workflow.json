@@ -1,0 +1,300 @@
+{
+  "name": "Collect a standup into Notion",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Collect a standup into Notion\n\nPortfolio demo only. This workflow is an original example for demonstration. It is not client work and it does not represent a deployment for any customer.\n\nRun **Run demo** to execute the offline rules engine. The live branch is used only when the incoming item sets `demo` to false and the placeholder credentials have been replaced.",
+        "height": 220,
+        "width": 520,
+        "color": 4
+      },
+      "id": "20377fc4-a306-4247-95a8-acdeca6ff034",
+      "name": "Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -40
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "45f3f592-fc0d-46b6-a3b6-e9c76f4dd0f5",
+      "name": "Run demo",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        40,
+        280
+      ],
+      "notes": "CLI and the n8n editor start here. An empty manual run loads the bundled sample.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "standup-collector",
+        "authentication": "none",
+        "responseMode": "lastNode",
+        "responseData": "firstEntryJson",
+        "options": {}
+      },
+      "id": "cbcdd661-8169-4e68-9b2c-ca99dca6ad68",
+      "name": "Inbound webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        40,
+        460
+      ],
+      "notes": "POST JSON to this path. Include demo:false only after credentials are connected.",
+      "notesInFlow": true,
+      "webhookId": "7ca9fbcf-0286-4c88-9b8c-877c64c6d469"
+    },
+    {
+      "parameters": {
+        "trigger": [
+          "message"
+        ],
+        "watchWorkspace": false,
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "YOUR_SLACK_CHANNEL_ID"
+        }
+      },
+      "id": "e6f99044-15c3-4c4c-b75e-e040a2d67582",
+      "name": "Slack trigger",
+      "type": "n8n-nodes-base.slackTrigger",
+      "typeVersion": 1,
+      "position": [
+        40,
+        640
+      ],
+      "credentials": {
+        "slackApi": {
+          "id": "PLACEHOLDER_SLACKAPI",
+          "name": "Slack bot"
+        }
+      },
+      "notes": "Watches a channel for messages that should become tasks. Demo uses the sample message.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const sample = {\n  \"demo\": true,\n  \"text\": \"@amina Yesterday: shipped the invoice workflow.\\nToday: lead scoring.\\nDue 2026-11-25.\",\n  \"channel\": \"#ops\",\n  \"source\": \"slack\"\n};\nconst incoming = $input.first()?.json ?? {};\nconst provided = Object.keys(incoming).filter((key) => incoming[key] !== undefined && incoming[key] !== null && incoming[key] !== '');\nconst base = provided.length ? { ...sample, ...incoming } : { ...sample };\nconst flag = incoming.demo;\nbase.demo = !(flag === false || flag === 'false' || flag === 0 || flag === '0');\nreturn [{ json: base }];\n"
+      },
+      "id": "8bf97487-9219-4827-9334-e3e64174ba5b",
+      "name": "Normalize input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        340,
+        360
+      ],
+      "notes": "Merges the request over the bundled sample. demo stays true unless the caller explicitly turns it off.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nconst produced = (() => {\n\nconst text = String(item.text || item.message || '').trim();\nconst owner = (text.match(/@([a-z0-9._-]+)/i) || [])[1] || item.owner || 'unassigned';\nconst due = (text.match(/due\\s+(\\d{4}-\\d{2}-\\d{2})/i) || [])[1] || item.due || '';\nconst urgent = /urgent|asap|today|blocker|sev-?1/i.test(text);\nconst title = text.split('\\n')[0].slice(0, 100) || 'Untitled task';\nconst record = {\n  title,\n  body: text,\n  owner,\n  due,\n  priority: urgent ? 'high' : 'normal',\n  source: item.source || 'slack',\n  channel: item.channel || '',\n};\nreturn {\n  summary: 'Task for ' + owner + (due ? ' due ' + due : '') + ': ' + title,\n  route: urgent ? 'urgent' : 'normal',\n  record,\n  slackText: 'Created a Notion task for ' + owner + ': ' + title,\n  actions: [{ app: 'Notion', operation: 'create task', payload: record }],\n};\n\n})();\nif (!produced || typeof produced.summary !== 'string' || !produced.summary.trim()) {\n  throw new Error('Apply rules must return a summary string');\n}\nreturn [{\n  json: {\n    ...item,\n    ...produced,\n    demo: item.demo !== false,\n  },\n}];\n"
+      },
+      "id": "5c8dd044-e6d1-46b7-a364-d289b3178f2d",
+      "name": "Apply rules",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        620,
+        360
+      ],
+      "notes": "Deterministic stand-in for the model or enrichment API. Replace or precede this with a live model node when you turn demo mode off.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "57dd28af-ce1a-458b-b7eb-5a9fb9934f9f",
+              "leftValue": "={{ $json.demo }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "fe75ce7d-9f91-4fde-9340-8510755d7443",
+      "name": "Demo mode?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        900,
+        360
+      ],
+      "notes": "True: package the offline result. False: run the credentialed apps.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nreturn [{\n  json: {\n    demo: true,\n    status: 'demo_ready',\n    workflow: 'standup-collector',\n    summary: item.summary,\n    route: item.route ?? null,\n    record: item.record ?? {},\n    actions: item.actions ?? [],\n    slackText: item.slackText ?? item.summary,\n    notes: 'Demo mode did not call external apps. Send {\"demo\": false} after placeholder credentials are replaced.',\n  },\n}];\n"
+      },
+      "id": "d68ea84d-2618-4215-b9fa-329c25a3295c",
+      "name": "Package demo result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "apiKey",
+        "resource": "page",
+        "operation": "create",
+        "pageId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://www.notion.so/0123456789abcdef0123456789abcdef"
+        },
+        "title": "={{ $json.record.title || $json.summary }}",
+        "blockUi": {
+          "blockValues": []
+        }
+      },
+      "id": "5117681b-8cf8-4c2f-a152-295934ddaabe",
+      "name": "Create Notion page",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1180,
+        760
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "PLACEHOLDER_NOTIONAPI",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Live path\n\nReplace every `PLACEHOLDER_*` credential, then POST the sample with `\"demo\": false`.\n\nThe nodes on this branch use the `record` and `actions` fields produced by Apply rules.",
+        "height": 180,
+        "width": 420,
+        "color": 6
+      },
+      "id": "552616fe-ed36-468d-b91b-340f724666d3",
+      "name": "Live path",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        520
+      ]
+    }
+  ],
+  "connections": {
+    "Run demo": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inbound webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack trigger": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize input": {
+      "main": [
+        [
+          {
+            "node": "Apply rules",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply rules": {
+      "main": [
+        [
+          {
+            "node": "Demo mode?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Demo mode?": {
+      "main": [
+        [
+          {
+            "node": "Package demo result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Notion page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "description": "A standup message becomes a Notion page titled with the first line, assigned to the mentioned person."
+  },
+  "active": false
+}

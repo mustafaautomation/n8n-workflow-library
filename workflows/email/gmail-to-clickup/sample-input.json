@@ -1,0 +1,6 @@
+{
+  "demo": true,
+  "from": "client@brightline.example",
+  "subject": "Please update the homepage hero",
+  "body": "The hero is broken on mobile. Can you ship a fix this week?"
+}

@@ -1,0 +1,7 @@
+{
+  "demo": true,
+  "from": "sam@paperroute.example",
+  "subject": "Survey",
+  "body": "The refund never arrived and the experience was terrible.",
+  "email": "sam@paperroute.example"
+}

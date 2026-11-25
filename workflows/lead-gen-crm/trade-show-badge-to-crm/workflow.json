@@ -1,0 +1,346 @@
+{
+  "name": "Trade-show badge scan to the CRM",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Trade-show badge scan to the CRM\n\nPortfolio demo only. This workflow is an original example for demonstration. It is not client work and it does not represent a deployment for any customer.\n\nRun **Run demo** to execute the offline rules engine. The live branch is used only when the incoming item sets `demo` to false and the placeholder credentials have been replaced.",
+        "height": 220,
+        "width": 520,
+        "color": 4
+      },
+      "id": "049a86f1-7147-4821-9d3b-dbf0af5ba163",
+      "name": "Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -40
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "b6d2207e-1423-45e8-a1e1-15f91e5d747d",
+      "name": "Run demo",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        40,
+        280
+      ],
+      "notes": "CLI and the n8n editor start here. An empty manual run loads the bundled sample.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "trade-show-badge-to-crm",
+        "authentication": "none",
+        "responseMode": "lastNode",
+        "responseData": "firstEntryJson",
+        "options": {}
+      },
+      "id": "aac97560-74cf-4b51-8f02-cedd013e1fd0",
+      "name": "Inbound webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        40,
+        460
+      ],
+      "notes": "POST JSON to this path. Include demo:false only after credentials are connected.",
+      "notesInFlow": true,
+      "webhookId": "f2d546c9-2959-4339-a0f8-138c211ac9d7"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const sample = {\n  \"demo\": true,\n  \"firstName\": \"Nora\",\n  \"lastName\": \"Rahman\",\n  \"email\": \"kai@lumenfreight.example\",\n  \"company\": \"Lumen Freight\",\n  \"title\": \"Head of Operations\",\n  \"employees\": 42,\n  \"budget\": 8000,\n  \"source\": \"referral\",\n  \"utmSource\": \"linkedin\",\n  \"utmMedium\": \"cpc\",\n  \"utmCampaign\": \"ops-audit-q1\",\n  \"event\": \"Ops Summit\"\n};\nconst incoming = $input.first()?.json ?? {};\nconst provided = Object.keys(incoming).filter((key) => incoming[key] !== undefined && incoming[key] !== null && incoming[key] !== '');\nconst base = provided.length ? { ...sample, ...incoming } : { ...sample };\nconst flag = incoming.demo;\nbase.demo = !(flag === false || flag === 'false' || flag === 0 || flag === '0');\nreturn [{ json: base }];\n"
+      },
+      "id": "d4aa4830-40a9-4a30-b0fe-ee97260d986d",
+      "name": "Normalize input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        340,
+        360
+      ],
+      "notes": "Merges the request over the bundled sample. demo stays true unless the caller explicitly turns it off.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nconst produced = (() => {\n\nconst email = String(item.email || '').trim().toLowerCase();\nconst company = String(item.company || 'Unknown company').trim();\nconst source = String(item.source || 'unknown').trim().toLowerCase();\nconst employees = Number(item.employees || item.headcount || 0);\nconst budget = Number(item.budget || 0);\nconst title = String(item.title || '').toLowerCase();\nconst domain = email.includes('@') ? email.split('@')[1] : '';\nconst freeDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com'];\nconst intentSources = ['referral', 'booth', 'demo'];\nlet score = 15;\nconst reasons = [];\nif (email && !freeDomains.includes(domain)) {\n  score += 15;\n  reasons.push('work email');\n} else if (email) {\n  reasons.push('free inbox, keep it in nurture');\n}\nif (employees >= 50) {\n  score += 20;\n  reasons.push('headcount at or above 50');\n} else if (employees >= 10) {\n  score += 10;\n  reasons.push('team of 10 or more');\n}\nif (intentSources.includes(source)) {\n  score += 25;\n  reasons.push('high-intent source: ' + source);\n}\nif (budget >= 5000) {\n  score += 15;\n  reasons.push('budget at or above 5000');\n}\nif (/(founder|owner|vp|head|director|ceo|cto|cmo)/.test(title)) {\n  score += 10;\n  reasons.push('buyer title');\n}\nscore = Math.max(0, Math.min(100, score));\nlet tier = score >= 60 ? 'sql' : score >= 45 ? 'mql' : 'nurture';\nconst known = Array.isArray(item.knownEmails) ? item.knownEmails.map((value) => String(value).toLowerCase()) : [];\nif (email && known.includes(email)) tier = 'duplicate';\nconst record = {\n  email,\n  firstName: item.firstName || '',\n  lastName: item.lastName || '',\n  company,\n  title: item.title || '',\n  source,\n  employees,\n  budget,\n  score,\n  tier,\n  reasons: reasons.join('; '),\n  dealName: company + ' \u2014 ' + tier.toUpperCase(),\n  amount: budget,\n  stage: tier === 'sql' ? 'appointmentscheduled' : 'qualifiedtobuy',\n};\nreturn {\n  summary: tier === 'duplicate'\n    ? email + ' is already on file. No new HubSpot record is required.'\n    : company + ' (' + email + ') scored ' + score + ' and landed in ' + tier + ' for HubSpot.',\n  route: tier,\n  record,\n  slackText: tier.toUpperCase() + ' lead ' + email + ' at ' + company + ' scored ' + score + '. ' + reasons[0],\n  actions: [\n    { app: 'HubSpot', operation: 'upsert', payload: record },\n  ],\n};\n\n})();\nif (!produced || typeof produced.summary !== 'string' || !produced.summary.trim()) {\n  throw new Error('Apply rules must return a summary string');\n}\nreturn [{\n  json: {\n    ...item,\n    ...produced,\n    demo: item.demo !== false,\n  },\n}];\n"
+      },
+      "id": "173c067f-352e-4a6d-b22c-56bfac5928c8",
+      "name": "Apply rules",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        620,
+        360
+      ],
+      "notes": "Deterministic stand-in for the model or enrichment API. Replace or precede this with a live model node when you turn demo mode off.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "48d46dd2-333d-4741-96fc-99844d6f49da",
+              "leftValue": "={{ $json.demo }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a0c69856-d8ee-4d67-99a5-884a9e61d448",
+      "name": "Demo mode?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        900,
+        360
+      ],
+      "notes": "True: package the offline result. False: run the credentialed apps.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nreturn [{\n  json: {\n    demo: true,\n    status: 'demo_ready',\n    workflow: 'trade-show-badge-to-crm',\n    summary: item.summary,\n    route: item.route ?? null,\n    record: item.record ?? {},\n    actions: item.actions ?? [],\n    slackText: item.slackText ?? item.summary,\n    notes: 'Demo mode did not call external apps. Send {\"demo\": false} after placeholder credentials are replaced.',\n  },\n}];\n"
+      },
+      "id": "9243153e-111f-47c5-b5d4-b8fd80651059",
+      "name": "Package demo result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "sheet",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "YOUR_SPREADSHEET_ID"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Badge scans"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "7219384a-d6b3-42d5-aad2-693b65275627",
+      "name": "Append Badge scans",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1180,
+        760
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PLACEHOLDER_GOOGLESHEETSOAUTH2API",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "contact",
+        "operation": "upsert",
+        "email": "={{ $json.record.email || $json.email }}",
+        "additionalFields": {
+          "firstName": "={{ $json.record.firstName || $json.firstName }}",
+          "lastName": "={{ $json.record.lastName || $json.lastName }}",
+          "companyName": "={{ $json.record.company || $json.company }}"
+        }
+      },
+      "id": "68e48579-aa47-44cb-b6ce-eac44be15807",
+      "name": "Upsert HubSpot contact",
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2.2,
+      "position": [
+        1460,
+        760
+      ],
+      "credentials": {
+        "hubspotOAuth2Api": {
+          "id": "PLACEHOLDER_HUBSPOTOAUTH2API",
+          "name": "HubSpot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "post",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "#events"
+        },
+        "text": "={{ $json.slackText || $json.summary }}",
+        "otherOptions": {}
+      },
+      "id": "c7dcff65-af6d-43df-bc07-f12a5918d848",
+      "name": "Post #events",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1740,
+        760
+      ],
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "PLACEHOLDER_SLACKOAUTH2API",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Live path\n\nReplace every `PLACEHOLDER_*` credential, then POST the sample with `\"demo\": false`.\n\nThe nodes on this branch use the `record` and `actions` fields produced by Apply rules.",
+        "height": 180,
+        "width": 420,
+        "color": 6
+      },
+      "id": "483b3b02-e49d-4767-91bf-2ca90d671294",
+      "name": "Live path",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        520
+      ]
+    }
+  ],
+  "connections": {
+    "Run demo": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inbound webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize input": {
+      "main": [
+        [
+          {
+            "node": "Apply rules",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply rules": {
+      "main": [
+        [
+          {
+            "node": "Demo mode?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Demo mode?": {
+      "main": [
+        [
+          {
+            "node": "Package demo result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append Badge scans",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Badge scans": {
+      "main": [
+        [
+          {
+            "node": "Upsert HubSpot contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert HubSpot contact": {
+      "main": [
+        [
+          {
+            "node": "Post #events",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "description": "A badge scan from the show floor becomes a scored contact, a sheet row tagged with the event, and a Slack note for the rep who scanned it."
+  },
+  "active": false
+}

@@ -1,0 +1,40 @@
+name: Validate workflows
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  parse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Parse catalog and workflow JSON
+        run: python3 scripts/validate_catalog.py
+
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Install n8n
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential python3
+          mkdir -p .ci
+          npm install --prefix .ci n8n@2.49.5 --no-audit --no-fund
+      - name: Import every workflow into n8n
+        env:
+          N8N_BIN: .ci/node_modules/n8n/bin/n8n
+        run: python3 scripts/import_and_test.py --import-only

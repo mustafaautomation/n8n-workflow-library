@@ -1,0 +1,334 @@
+{
+  "name": "AI support ticket classification and routing",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## AI support ticket classification and routing\n\nPortfolio demo only. This workflow is an original example for demonstration. It is not client work and it does not represent a deployment for any customer.\n\nRun **Run demo** to execute the offline rules engine. The live branch is used only when the incoming item sets `demo` to false and the placeholder credentials have been replaced.",
+        "height": 220,
+        "width": 520,
+        "color": 4
+      },
+      "id": "7bf43d7c-b4be-4f42-8068-3cfd5fd4125f",
+      "name": "Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -40
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "dc7953bb-0b1c-4cd4-8615-bb6e568dc35c",
+      "name": "Run demo",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        40,
+        280
+      ],
+      "notes": "CLI and the n8n editor start here. An empty manual run loads the bundled sample.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ai-support-ticket-routing",
+        "authentication": "none",
+        "responseMode": "lastNode",
+        "responseData": "firstEntryJson",
+        "options": {}
+      },
+      "id": "3a26c5ef-3569-46c0-bcfd-47d2c9a8a040",
+      "name": "Inbound webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        40,
+        460
+      ],
+      "notes": "POST JSON to this path. Include demo:false only after credentials are connected.",
+      "notesInFlow": true,
+      "webhookId": "f6b30c22-995f-45b6-a51a-c866866cc8c6"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const sample = {\n  \"demo\": true,\n  \"from\": \"ada@northwind.example\",\n  \"subject\": \"Checkout returns 500\",\n  \"body\": \"The checkout is broken and returns a 500 after submit.\",\n  \"email\": \"ada@northwind.example\"\n};\nconst incoming = $input.first()?.json ?? {};\nconst provided = Object.keys(incoming).filter((key) => incoming[key] !== undefined && incoming[key] !== null && incoming[key] !== '');\nconst base = provided.length ? { ...sample, ...incoming } : { ...sample };\nconst flag = incoming.demo;\nbase.demo = !(flag === false || flag === 'false' || flag === 0 || flag === '0');\nreturn [{ json: base }];\n"
+      },
+      "id": "abfcf30a-6f4a-4aac-a61a-0c176749b385",
+      "name": "Normalize input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        340,
+        360
+      ],
+      "notes": "Merges the request over the bundled sample. demo stays true unless the caller explicitly turns it off.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nconst produced = (() => {\n\nconst haystack = String(item.body || item.body || item.subject || item.summary || '').toLowerCase();\nconst hits = [];\nif (['refund', 'invoice', 'charge', 'payment'].some((word) => haystack.includes(word))) {\n  hits.push({ id: 'billing', label: 'Billing', weight: 3 });\n}\nif (['error', 'bug', 'broken', 'down', '500'].some((word) => haystack.includes(word))) {\n  hits.push({ id: 'technical', label: 'Technical', weight: 3 });\n}\nif (['login', 'password', 'access', 'invite'].some((word) => haystack.includes(word))) {\n  hits.push({ id: 'account', label: 'Account', weight: 2 });\n}\nif (['hello', 'question'].some((word) => haystack.includes(word))) {\n  hits.push({ id: 'general', label: 'General', weight: 1 });\n}\nhits.sort((a, b) => b.weight - a.weight);\nconst winner = hits[0] || { id: 'general', label: 'general', weight: 0 };\nconst draft = item.draft || ('Thanks for the note. We logged this as ' + winner.label + ' and will follow up shortly.');\nconst record = {\n  label: winner.id,\n  labelName: winner.label,\n  confidence: hits.length ? Math.min(0.95, 0.45 + hits.length * 0.15) : 0.3,\n  subject: item.subject || winner.label,\n  body: draft,\n  email: item.from || item.email || '',\n  priority: winner.id,\n  title: (item.subject || winner.label),\n};\nreturn {\n  summary: 'Ticket classified as ' + winner.label + ' (' + record.confidence.toFixed(2) + ').',\n  route: winner.id,\n  record,\n  slackText: winner.label + ': ' + (item.subject || haystack.slice(0, 80)),\n  actions: [{ app: 'mailbox', operation: 'label-and-draft', payload: record }],\n};\n\n})();\nif (!produced || typeof produced.summary !== 'string' || !produced.summary.trim()) {\n  throw new Error('Apply rules must return a summary string');\n}\nreturn [{\n  json: {\n    ...item,\n    ...produced,\n    demo: item.demo !== false,\n  },\n}];\n"
+      },
+      "id": "d8f48484-e014-4d5c-900b-74ec61997194",
+      "name": "Apply rules",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        620,
+        360
+      ],
+      "notes": "Deterministic stand-in for the model or enrichment API. Replace or precede this with a live model node when you turn demo mode off.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d5f921b1-6200-4981-b04f-e07a816211c6",
+              "leftValue": "={{ $json.demo }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "dd8f66fa-8927-462e-aefa-29f471ddd4d2",
+      "name": "Demo mode?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        900,
+        360
+      ],
+      "notes": "True: package the offline result. False: run the credentialed apps.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nreturn [{\n  json: {\n    demo: true,\n    status: 'demo_ready',\n    workflow: 'ai-support-ticket-routing',\n    summary: item.summary,\n    route: item.route ?? null,\n    record: item.record ?? {},\n    actions: item.actions ?? [],\n    slackText: item.slackText ?? item.summary,\n    notes: 'Demo mode did not call external apps. Send {\"demo\": false} after placeholder credentials are replaced.',\n  },\n}];\n"
+      },
+      "id": "00bb6522-32a9-44ef-8c08-0ef84114f1c3",
+      "name": "Package demo result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "apiToken",
+        "resource": "ticket",
+        "operation": "create",
+        "description": "={{ $json.record.body || $json.summary }}",
+        "jsonParameters": false,
+        "additionalFields": {
+          "subject": "={{ $json.record.subject || $json.summary }}"
+        }
+      },
+      "id": "1bea8a09-d7dd-4954-b6e5-5551e19e032a",
+      "name": "Create Zendesk ticket",
+      "type": "n8n-nodes-base.zendesk",
+      "typeVersion": 1,
+      "position": [
+        1180,
+        760
+      ],
+      "credentials": {
+        "zendeskApi": {
+          "id": "PLACEHOLDER_ZENDESKAPI",
+          "name": "Zendesk account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "ticket",
+        "operation": "create",
+        "requester": "email",
+        "requesterIdentificationValue": "={{ $json.record.email || $json.email || 'lead@example.com' }}",
+        "status": "pending",
+        "priority": "low",
+        "source": "portal",
+        "subject": "={{ $json.record.subject || $json.summary }}",
+        "description": "={{ $json.record.body || $json.summary }}"
+      },
+      "id": "75eeeb83-f5bf-4fa3-ba9b-8f2c74ee3d1f",
+      "name": "Create Freshdesk ticket",
+      "type": "n8n-nodes-base.freshdesk",
+      "typeVersion": 1,
+      "position": [
+        1460,
+        760
+      ],
+      "credentials": {
+        "freshdeskApi": {
+          "id": "PLACEHOLDER_FRESHDESKAPI",
+          "name": "Freshdesk account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "post",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "#support"
+        },
+        "text": "={{ $json.slackText || $json.summary }}",
+        "otherOptions": {}
+      },
+      "id": "ee1058ca-f086-4156-8bc1-f86e204fc486",
+      "name": "Post #support",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1740,
+        760
+      ],
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "PLACEHOLDER_SLACKOAUTH2API",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Live path\n\nReplace every `PLACEHOLDER_*` credential, then POST the sample with `\"demo\": false`.\n\nThe nodes on this branch use the `record` and `actions` fields produced by Apply rules.",
+        "height": 180,
+        "width": 420,
+        "color": 6
+      },
+      "id": "5b0c8e24-07e5-4574-a045-3125d40b8089",
+      "name": "Live path",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        520
+      ]
+    }
+  ],
+  "connections": {
+    "Run demo": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inbound webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize input": {
+      "main": [
+        [
+          {
+            "node": "Apply rules",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply rules": {
+      "main": [
+        [
+          {
+            "node": "Demo mode?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Demo mode?": {
+      "main": [
+        [
+          {
+            "node": "Package demo result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Zendesk ticket",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Zendesk ticket": {
+      "main": [
+        [
+          {
+            "node": "Create Freshdesk ticket",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Freshdesk ticket": {
+      "main": [
+        [
+          {
+            "node": "Post #support",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "description": "A ticket is classed as billing, technical, account, or general. The same decision opens a Zendesk ticket and a Freshdesk ticket so you can keep the desk you actually use, and Slack hears about technical and billing."
+  },
+  "active": false
+}

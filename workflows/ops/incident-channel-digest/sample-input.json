@@ -1,0 +1,6 @@
+{
+  "demo": true,
+  "text": "@leo Checkout 500 started 08:10. Payments paused.\nDue 2026-11-25.",
+  "channel": "#incidents",
+  "source": "slack"
+}

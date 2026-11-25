@@ -1,0 +1,17 @@
+{
+  "demo": true,
+  "stripe": [
+    {
+      "id": "po_1",
+      "amount": 198,
+      "currency": "USD"
+    }
+  ],
+  "bank": [
+    {
+      "id": "dep_1",
+      "amount": 198,
+      "currency": "USD"
+    }
+  ]
+}

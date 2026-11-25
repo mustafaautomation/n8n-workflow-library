@@ -1,0 +1,7 @@
+{
+  "demo": true,
+  "from": "nora@brightline.example",
+  "subject": "Time for a demo",
+  "body": "Can we do a demo next Tuesday? Due 2026-12-02.",
+  "text": "Due 2026-12-02 please book a demo."
+}

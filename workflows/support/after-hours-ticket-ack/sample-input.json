@@ -1,0 +1,7 @@
+{
+  "demo": true,
+  "from": "ada@northwind.example",
+  "subject": "Checkout returns 500",
+  "body": "I cannot log in after hours. Password reset failed.",
+  "email": "ada@northwind.example"
+}

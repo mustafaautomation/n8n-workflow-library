@@ -1,0 +1,6 @@
+{
+  "demo": true,
+  "url": "https://example.com/pricing",
+  "html": "<title>Pricing</title><p>Growth is 149. Email sales@example.com.</p>",
+  "company": "Example Competitor"
+}

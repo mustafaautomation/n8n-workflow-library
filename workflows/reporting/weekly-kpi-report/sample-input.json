@@ -1,0 +1,24 @@
+{
+  "demo": true,
+  "period": "2026-W47",
+  "rows": [
+    {
+      "mrr": 4200,
+      "newLeads": 18,
+      "won": 3,
+      "tickets": 40
+    },
+    {
+      "mrr": 800,
+      "newLeads": 7,
+      "won": 1,
+      "tickets": 12
+    }
+  ],
+  "previous": {
+    "mrr": 4500,
+    "newLeads": 20,
+    "won": 2,
+    "tickets": 55
+  }
+}

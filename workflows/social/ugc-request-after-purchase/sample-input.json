@@ -1,0 +1,8 @@
+{
+  "demo": true,
+  "orderId": "1008",
+  "email": "buyer@example.com",
+  "total": 86,
+  "financialStatus": "paid",
+  "country": "US"
+}

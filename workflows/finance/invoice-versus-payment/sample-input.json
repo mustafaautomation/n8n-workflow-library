@@ -1,0 +1,22 @@
+{
+  "demo": true,
+  "stripe": [
+    {
+      "id": "INV-2041",
+      "amount": 1188,
+      "currency": "USD"
+    },
+    {
+      "id": "INV-2042",
+      "amount": 400,
+      "currency": "USD"
+    }
+  ],
+  "bank": [
+    {
+      "id": "wire_44",
+      "amount": 1188,
+      "currency": "USD"
+    }
+  ]
+}

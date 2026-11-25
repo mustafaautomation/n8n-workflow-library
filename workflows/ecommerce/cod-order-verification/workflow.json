@@ -1,0 +1,335 @@
+{
+  "name": "Cash-on-delivery order verification",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Cash-on-delivery order verification\n\nPortfolio demo only. This workflow is an original example for demonstration. It is not client work and it does not represent a deployment for any customer.\n\nRun **Run demo** to execute the offline rules engine. The live branch is used only when the incoming item sets `demo` to false and the placeholder credentials have been replaced.",
+        "height": 220,
+        "width": 520,
+        "color": 4
+      },
+      "id": "983f27f0-3af9-47b1-b046-20ede6c1cc76",
+      "name": "Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -40
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "7d6d1b48-9fa9-4dd6-aa6d-cb81448ab850",
+      "name": "Run demo",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        40,
+        280
+      ],
+      "notes": "CLI and the n8n editor start here. An empty manual run loads the bundled sample.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "cod-order-verification",
+        "authentication": "none",
+        "responseMode": "lastNode",
+        "responseData": "firstEntryJson",
+        "options": {}
+      },
+      "id": "60cd1d49-9a14-451b-adf6-b117ccd80aa9",
+      "name": "Inbound webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        40,
+        460
+      ],
+      "notes": "POST JSON to this path. Include demo:false only after credentials are connected.",
+      "notesInFlow": true,
+      "webhookId": "2d8575e7-5d1e-406d-82fc-f92b774bf436"
+    },
+    {
+      "parameters": {
+        "event": "order.created"
+      },
+      "id": "e9a5d315-62ae-4599-ad29-ec47e8eefbee",
+      "name": "WooCommerce order trigger",
+      "type": "n8n-nodes-base.wooCommerceTrigger",
+      "typeVersion": 1,
+      "position": [
+        40,
+        640
+      ],
+      "credentials": {
+        "wooCommerceApi": {
+          "id": "PLACEHOLDER_WOOCOMMERCEAPI",
+          "name": "WooCommerce account"
+        }
+      },
+      "notes": "Fires on order.created after the store credential is connected.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const sample = {\n  \"demo\": true,\n  \"orderId\": \"WC-990\",\n  \"email\": \"buyer@example.com\",\n  \"total\": 320,\n  \"currency\": \"USD\",\n  \"country\": \"US\",\n  \"financialStatus\": \"cod\",\n  \"itemCount\": 2,\n  \"shippingMethod\": \"standard\",\n  \"phone\": \"+15555550177\"\n};\nconst incoming = $input.first()?.json ?? {};\nconst provided = Object.keys(incoming).filter((key) => incoming[key] !== undefined && incoming[key] !== null && incoming[key] !== '');\nconst base = provided.length ? { ...sample, ...incoming } : { ...sample };\nconst flag = incoming.demo;\nbase.demo = !(flag === false || flag === 'false' || flag === 0 || flag === '0');\nreturn [{ json: base }];\n"
+      },
+      "id": "1603bbc5-14cb-4564-9cfa-78fab364cd96",
+      "name": "Normalize input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        340,
+        360
+      ],
+      "notes": "Merges the request over the bundled sample. demo stays true unless the caller explicitly turns it off.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nconst produced = (() => {\n\nconst total = Number(item.total || item.amount || 0);\nconst country = String(item.country || item.shippingCountry || 'US');\nconst financial = String(item.financialStatus || item.status || 'paid').toLowerCase();\nconst tags = [];\nlet route = 'fulfill';\nif (financial === 'refunded' || financial === 'voided') route = 'refund';\nelse if (financial === 'pending' || financial === 'cod') route = 'verify-payment';\nelse if (total >= 250) route = 'vip';\nelse if (['BR', 'IN', 'NG'].includes(country) && item.shippingMethod === 'express') route = 'fraud-review';\nif (Number(item.itemCount || 1) >= 8) tags.push('bulk');\nif (route === 'vip') tags.push('vip');\nconst record = {\n  orderId: item.orderId || item.id,\n  store: 'WooCommerce',\n  email: item.email || '',\n  total,\n  currency: item.currency || 'USD',\n  country,\n  financialStatus: financial,\n  route,\n  tags: tags.join(','),\n  title: 'WooCommerce' + ' ' + (item.orderId || ''),\n};\nreturn {\n  summary: 'WooCommerce' + ' order ' + record.orderId + ' routed to ' + route + ' (' + total + ' ' + record.currency + ').',\n  route,\n  record,\n  slackText: route.toUpperCase() + ' ' + record.orderId + ' for ' + (item.email || 'guest') + ' \u2014 ' + total,\n  actions: [{ app: 'WooCommerce', operation: route, payload: record }],\n};\n\n})();\nif (!produced || typeof produced.summary !== 'string' || !produced.summary.trim()) {\n  throw new Error('Apply rules must return a summary string');\n}\nreturn [{\n  json: {\n    ...item,\n    ...produced,\n    demo: item.demo !== false,\n  },\n}];\n"
+      },
+      "id": "03b9af2f-f8c6-483d-92a4-99916a5dab4c",
+      "name": "Apply rules",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        620,
+        360
+      ],
+      "notes": "Deterministic stand-in for the model or enrichment API. Replace or precede this with a live model node when you turn demo mode off.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "9140a1b5-8922-4eed-9fb0-946b78127073",
+              "leftValue": "={{ $json.demo }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "3675ce22-3bd1-4560-88be-9a5794005f6b",
+      "name": "Demo mode?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        900,
+        360
+      ],
+      "notes": "True: package the offline result. False: run the credentialed apps.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nreturn [{\n  json: {\n    demo: true,\n    status: 'demo_ready',\n    workflow: 'cod-order-verification',\n    summary: item.summary,\n    route: item.route ?? null,\n    record: item.record ?? {},\n    actions: item.actions ?? [],\n    slackText: item.slackText ?? item.summary,\n    notes: 'Demo mode did not call external apps. Send {\"demo\": false} after placeholder credentials are replaced.',\n  },\n}];\n"
+      },
+      "id": "ec60d298-98f2-4c02-9b65-74ee22e87ec7",
+      "name": "Package demo result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "sms",
+        "operation": "send",
+        "from": "={{ $json.record.from || '+15555550100' }}",
+        "to": "={{ $json.record.to || $json.record.phone || $json.phone }}",
+        "message": "={{ $json.record.message || $json.slackText || $json.summary }}",
+        "twiml": "={{ $json.record.twiml || '<Response><Say>We will call you back shortly.</Say></Response>' }}"
+      },
+      "id": "dd3f5337-b24c-4552-93b4-805838fe05e5",
+      "name": "Send SMS",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        1180,
+        760
+      ],
+      "credentials": {
+        "twilioApi": {
+          "id": "PLACEHOLDER_TWILIOAPI",
+          "name": "Twilio account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "sheet",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "YOUR_SPREADSHEET_ID"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "COD"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "032d156a-5384-4d53-b1e0-773b4940b49c",
+      "name": "Append COD",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1460,
+        760
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PLACEHOLDER_GOOGLESHEETSOAUTH2API",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Live path\n\nReplace every `PLACEHOLDER_*` credential, then POST the sample with `\"demo\": false`.\n\nThe nodes on this branch use the `record` and `actions` fields produced by Apply rules.",
+        "height": 180,
+        "width": 420,
+        "color": 6
+      },
+      "id": "41df665f-fe69-4895-b954-478f3b338b32",
+      "name": "Live path",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        520
+      ]
+    }
+  ],
+  "connections": {
+    "Run demo": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inbound webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WooCommerce order trigger": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize input": {
+      "main": [
+        [
+          {
+            "node": "Apply rules",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply rules": {
+      "main": [
+        [
+          {
+            "node": "Demo mode?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Demo mode?": {
+      "main": [
+        [
+          {
+            "node": "Package demo result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send SMS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send SMS": {
+      "main": [
+        [
+          {
+            "node": "Append COD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "description": "A cash-on-delivery order is texted for a yes before it is picked. Prepaid orders skip the text."
+  },
+  "active": false
+}

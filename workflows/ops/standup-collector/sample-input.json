@@ -1,0 +1,6 @@
+{
+  "demo": true,
+  "text": "@amina Yesterday: shipped the invoice workflow.\nToday: lead scoring.\nDue 2026-11-25.",
+  "channel": "#ops",
+  "source": "slack"
+}

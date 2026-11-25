@@ -1,0 +1,14 @@
+{
+  "demo": true,
+  "period": "2026-11-24",
+  "rows": [
+    {
+      "orders": 18,
+      "revenue": 1460
+    }
+  ],
+  "previous": {
+    "orders": 15,
+    "revenue": 1320
+  }
+}

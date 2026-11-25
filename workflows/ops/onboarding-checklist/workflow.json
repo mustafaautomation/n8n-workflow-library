@@ -1,0 +1,340 @@
+{
+  "name": "New-hire onboarding checklist",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## New-hire onboarding checklist\n\nPortfolio demo only. This workflow is an original example for demonstration. It is not client work and it does not represent a deployment for any customer.\n\nRun **Run demo** to execute the offline rules engine. The live branch is used only when the incoming item sets `demo` to false and the placeholder credentials have been replaced.",
+        "height": 220,
+        "width": 520,
+        "color": 4
+      },
+      "id": "b1f2bed2-d309-4ca7-b90e-9dc9fda081f8",
+      "name": "Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -40
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "598ea077-964e-41ce-8838-4d4dc0a4b363",
+      "name": "Run demo",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        40,
+        280
+      ],
+      "notes": "CLI and the n8n editor start here. An empty manual run loads the bundled sample.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "onboarding-checklist",
+        "authentication": "none",
+        "responseMode": "lastNode",
+        "responseData": "firstEntryJson",
+        "options": {}
+      },
+      "id": "7be8b386-339b-4f62-ac05-7007df029684",
+      "name": "Inbound webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        40,
+        460
+      ],
+      "notes": "POST JSON to this path. Include demo:false only after credentials are connected.",
+      "notesInFlow": true,
+      "webhookId": "6a10778c-859b-4b80-a093-9c1da3cfef4d"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const sample = {\n  \"demo\": true,\n  \"text\": \"@ops Prepare the desk for Nora Rahman.\\nDue 2026-12-01.\",\n  \"source\": \"hr\"\n};\nconst incoming = $input.first()?.json ?? {};\nconst provided = Object.keys(incoming).filter((key) => incoming[key] !== undefined && incoming[key] !== null && incoming[key] !== '');\nconst base = provided.length ? { ...sample, ...incoming } : { ...sample };\nconst flag = incoming.demo;\nbase.demo = !(flag === false || flag === 'false' || flag === 0 || flag === '0');\nreturn [{ json: base }];\n"
+      },
+      "id": "4cbba5dd-a01a-4ad6-8d70-335bd84bc5b5",
+      "name": "Normalize input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        340,
+        360
+      ],
+      "notes": "Merges the request over the bundled sample. demo stays true unless the caller explicitly turns it off.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nconst produced = (() => {\n\nconst text = String(item.text || item.message || '').trim();\nconst owner = (text.match(/@([a-z0-9._-]+)/i) || [])[1] || item.owner || 'unassigned';\nconst due = (text.match(/due\\s+(\\d{4}-\\d{2}-\\d{2})/i) || [])[1] || item.due || '';\nconst urgent = /urgent|asap|today|blocker|sev-?1/i.test(text);\nconst title = text.split('\\n')[0].slice(0, 100) || 'Untitled task';\nconst record = {\n  title,\n  body: text,\n  owner,\n  due,\n  priority: urgent ? 'high' : 'normal',\n  source: item.source || 'slack',\n  channel: item.channel || '',\n};\nreturn {\n  summary: 'Task for ' + owner + (due ? ' due ' + due : '') + ': ' + title,\n  route: urgent ? 'urgent' : 'normal',\n  record,\n  slackText: 'Created a Notion task for ' + owner + ': ' + title,\n  actions: [{ app: 'Notion', operation: 'create task', payload: record }],\n};\n\n})();\nif (!produced || typeof produced.summary !== 'string' || !produced.summary.trim()) {\n  throw new Error('Apply rules must return a summary string');\n}\nreturn [{\n  json: {\n    ...item,\n    ...produced,\n    demo: item.demo !== false,\n  },\n}];\n"
+      },
+      "id": "e06433b4-4c59-4f0e-b869-1e5cebbed886",
+      "name": "Apply rules",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        620,
+        360
+      ],
+      "notes": "Deterministic stand-in for the model or enrichment API. Replace or precede this with a live model node when you turn demo mode off.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a336c4e1-9ab6-4044-8483-b0293afac007",
+              "leftValue": "={{ $json.demo }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "f42e8436-712e-4f5e-b027-93a4772228a7",
+      "name": "Demo mode?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        900,
+        360
+      ],
+      "notes": "True: package the offline result. False: run the credentialed apps.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nreturn [{\n  json: {\n    demo: true,\n    status: 'demo_ready',\n    workflow: 'onboarding-checklist',\n    summary: item.summary,\n    route: item.route ?? null,\n    record: item.record ?? {},\n    actions: item.actions ?? [],\n    slackText: item.slackText ?? item.summary,\n    notes: 'Demo mode did not call external apps. Send {\"demo\": false} after placeholder credentials are replaced.',\n  },\n}];\n"
+      },
+      "id": "06834d94-02cd-41c5-8fb8-bac8aae8ccf1",
+      "name": "Package demo result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "apiKey",
+        "resource": "page",
+        "operation": "create",
+        "pageId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://www.notion.so/0123456789abcdef0123456789abcdef"
+        },
+        "title": "={{ $json.record.title || $json.summary }}",
+        "blockUi": {
+          "blockValues": []
+        }
+      },
+      "id": "3973fc05-4c23-4ddf-9529-23d02268842c",
+      "name": "Create Notion page",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1180,
+        760
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "PLACEHOLDER_NOTIONAPI",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "post",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "#people"
+        },
+        "text": "={{ $json.slackText || $json.summary }}",
+        "otherOptions": {}
+      },
+      "id": "e1ce8327-866e-4455-809f-8514b4f785d1",
+      "name": "Post #people",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1460,
+        760
+      ],
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "PLACEHOLDER_SLACKOAUTH2API",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "draft",
+        "operation": "create",
+        "sendTo": "={{ $json.record.email || $json.email || 'lead@example.com' }}",
+        "subject": "={{ $json.record.subject || $json.summary }}",
+        "message": "={{ $json.record.body || $json.record.message || $json.summary }}",
+        "emailType": "text",
+        "messageId": "={{ $json.record.messageId || 'MESSAGE_ID' }}",
+        "labelIds": [
+          "Label_1"
+        ]
+      },
+      "id": "c30bb265-ddc8-4ef0-8bf6-7a605f092cdc",
+      "name": "Create Gmail draft",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1740,
+        760
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "PLACEHOLDER_GMAILOAUTH2",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Live path\n\nReplace every `PLACEHOLDER_*` credential, then POST the sample with `\"demo\": false`.\n\nThe nodes on this branch use the `record` and `actions` fields produced by Apply rules.",
+        "height": 180,
+        "width": 420,
+        "color": 6
+      },
+      "id": "0e30aa4b-8cc2-4977-b63e-e80f255341f0",
+      "name": "Live path",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        520
+      ]
+    }
+  ],
+  "connections": {
+    "Run demo": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inbound webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize input": {
+      "main": [
+        [
+          {
+            "node": "Apply rules",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply rules": {
+      "main": [
+        [
+          {
+            "node": "Demo mode?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Demo mode?": {
+      "main": [
+        [
+          {
+            "node": "Package demo result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Notion page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Notion page": {
+      "main": [
+        [
+          {
+            "node": "Post #people",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post #people": {
+      "main": [
+        [
+          {
+            "node": "Create Gmail draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "description": "A new hire's name and start date become a checklist page, a Slack announcement, and a welcome draft."
+  },
+  "active": false
+}

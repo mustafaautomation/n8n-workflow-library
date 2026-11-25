@@ -1,0 +1,10 @@
+{
+  "demo": true,
+  "question": "What is your refund policy?",
+  "prompt": "What is your refund policy?",
+  "documents": [
+    {
+      "text": "Refunds are available within 14 days."
+    }
+  ]
+}

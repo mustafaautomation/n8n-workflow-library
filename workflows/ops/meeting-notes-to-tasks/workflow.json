@@ -1,0 +1,340 @@
+{
+  "name": "Meeting notes to tasks",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Meeting notes to tasks\n\nPortfolio demo only. This workflow is an original example for demonstration. It is not client work and it does not represent a deployment for any customer.\n\nRun **Run demo** to execute the offline rules engine. The live branch is used only when the incoming item sets `demo` to false and the placeholder credentials have been replaced.",
+        "height": 220,
+        "width": 520,
+        "color": 4
+      },
+      "id": "0ebb494f-0d81-4d41-bef2-908e62560abe",
+      "name": "Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -40
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "a8101e04-9b85-4b5f-9c00-9b4d51542ca7",
+      "name": "Run demo",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        40,
+        280
+      ],
+      "notes": "CLI and the n8n editor start here. An empty manual run loads the bundled sample.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "meeting-notes-to-tasks",
+        "authentication": "none",
+        "responseMode": "lastNode",
+        "responseData": "firstEntryJson",
+        "options": {}
+      },
+      "id": "46d93e49-d32c-4de1-b46a-1dac24a0d1f4",
+      "name": "Inbound webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        40,
+        460
+      ],
+      "notes": "POST JSON to this path. Include demo:false only after credentials are connected.",
+      "notesInFlow": true,
+      "webhookId": "3a6930c5-2197-459c-8ba0-5b1195c8a8ce"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const sample = {\n  \"demo\": true,\n  \"text\": \"@jonas Send the revised quote.\\nDue 2026-12-01.\\nAlso update the deck.\",\n  \"source\": \"meet\",\n  \"channel\": \"#clients\"\n};\nconst incoming = $input.first()?.json ?? {};\nconst provided = Object.keys(incoming).filter((key) => incoming[key] !== undefined && incoming[key] !== null && incoming[key] !== '');\nconst base = provided.length ? { ...sample, ...incoming } : { ...sample };\nconst flag = incoming.demo;\nbase.demo = !(flag === false || flag === 'false' || flag === 0 || flag === '0');\nreturn [{ json: base }];\n"
+      },
+      "id": "8d1e8d45-2ada-4a80-96a6-ed35de720410",
+      "name": "Normalize input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        340,
+        360
+      ],
+      "notes": "Merges the request over the bundled sample. demo stays true unless the caller explicitly turns it off.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nconst produced = (() => {\n\nconst text = String(item.text || item.message || '').trim();\nconst owner = (text.match(/@([a-z0-9._-]+)/i) || [])[1] || item.owner || 'unassigned';\nconst due = (text.match(/due\\s+(\\d{4}-\\d{2}-\\d{2})/i) || [])[1] || item.due || '';\nconst urgent = /urgent|asap|today|blocker|sev-?1/i.test(text);\nconst title = text.split('\\n')[0].slice(0, 100) || 'Untitled task';\nconst record = {\n  title,\n  body: text,\n  owner,\n  due,\n  priority: urgent ? 'high' : 'normal',\n  source: item.source || 'slack',\n  channel: item.channel || '',\n};\nreturn {\n  summary: 'Task for ' + owner + (due ? ' due ' + due : '') + ': ' + title,\n  route: urgent ? 'urgent' : 'normal',\n  record,\n  slackText: 'Created a ClickUp task for ' + owner + ': ' + title,\n  actions: [{ app: 'ClickUp', operation: 'create task', payload: record }],\n};\n\n})();\nif (!produced || typeof produced.summary !== 'string' || !produced.summary.trim()) {\n  throw new Error('Apply rules must return a summary string');\n}\nreturn [{\n  json: {\n    ...item,\n    ...produced,\n    demo: item.demo !== false,\n  },\n}];\n"
+      },
+      "id": "b03c454a-9936-4b45-8598-2f1eef1efa3a",
+      "name": "Apply rules",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        620,
+        360
+      ],
+      "notes": "Deterministic stand-in for the model or enrichment API. Replace or precede this with a live model node when you turn demo mode off.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "70280c49-8778-4d58-a337-411e10791aae",
+              "leftValue": "={{ $json.demo }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "f4284c3a-9d23-4d5c-99c0-5708bc81b8b4",
+      "name": "Demo mode?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        900,
+        360
+      ],
+      "notes": "True: package the offline result. False: run the credentialed apps.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nreturn [{\n  json: {\n    demo: true,\n    status: 'demo_ready',\n    workflow: 'meeting-notes-to-tasks',\n    summary: item.summary,\n    route: item.route ?? null,\n    record: item.record ?? {},\n    actions: item.actions ?? [],\n    slackText: item.slackText ?? item.summary,\n    notes: 'Demo mode did not call external apps. Send {\"demo\": false} after placeholder credentials are replaced.',\n  },\n}];\n"
+      },
+      "id": "86a06fb4-5748-4d08-b5bd-69a7906f8113",
+      "name": "Package demo result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "task",
+        "operation": "create",
+        "team": "YOUR_TEAM_ID",
+        "space": "YOUR_SPACE_ID",
+        "folderless": true,
+        "list": "YOUR_LIST_ID",
+        "name": "={{ $json.record.title || $json.summary }}",
+        "additionalFields": {
+          "content": "={{ $json.record.body || $json.summary }}"
+        }
+      },
+      "id": "a5d466d9-8a9c-4fff-8703-ba5db0929673",
+      "name": "Create ClickUp task",
+      "type": "n8n-nodes-base.clickUp",
+      "typeVersion": 1.1,
+      "position": [
+        1180,
+        760
+      ],
+      "credentials": {
+        "clickUpOAuth2Api": {
+          "id": "PLACEHOLDER_CLICKUPOAUTH2API",
+          "name": "ClickUp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "apiKey",
+        "resource": "page",
+        "operation": "create",
+        "pageId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://www.notion.so/0123456789abcdef0123456789abcdef"
+        },
+        "title": "={{ $json.record.title || $json.summary }}",
+        "blockUi": {
+          "blockValues": []
+        }
+      },
+      "id": "c59be738-5b8b-47e3-8f55-ea3c860dcb41",
+      "name": "Create Notion page",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1460,
+        760
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "PLACEHOLDER_NOTIONAPI",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "post",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "#clients"
+        },
+        "text": "={{ $json.slackText || $json.summary }}",
+        "otherOptions": {}
+      },
+      "id": "e1537354-fe4c-4a79-82e2-e46f5c68dd97",
+      "name": "Post #clients",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1740,
+        760
+      ],
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "PLACEHOLDER_SLACKOAUTH2API",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Live path\n\nReplace every `PLACEHOLDER_*` credential, then POST the sample with `\"demo\": false`.\n\nThe nodes on this branch use the `record` and `actions` fields produced by Apply rules.",
+        "height": 180,
+        "width": 420,
+        "color": 6
+      },
+      "id": "d2c7fe73-928b-4e6d-b5be-05de321aad1c",
+      "name": "Live path",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        520
+      ]
+    }
+  ],
+  "connections": {
+    "Run demo": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inbound webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize input": {
+      "main": [
+        [
+          {
+            "node": "Apply rules",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply rules": {
+      "main": [
+        [
+          {
+            "node": "Demo mode?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Demo mode?": {
+      "main": [
+        [
+          {
+            "node": "Package demo result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create ClickUp task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create ClickUp task": {
+      "main": [
+        [
+          {
+            "node": "Create Notion page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Notion page": {
+      "main": [
+        [
+          {
+            "node": "Post #clients",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "description": "Notes pasted after a call are split into a task with an owner and a due date, then mirrored to Notion."
+  },
+  "active": false
+}

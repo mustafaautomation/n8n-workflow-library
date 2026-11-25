@@ -1,0 +1,11 @@
+{
+  "demo": true,
+  "orderId": "1044",
+  "email": "buyer@example.com",
+  "total": 320,
+  "currency": "USD",
+  "country": "US",
+  "financialStatus": "paid",
+  "itemCount": 2,
+  "shippingMethod": "standard"
+}

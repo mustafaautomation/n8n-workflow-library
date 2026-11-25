@@ -1,0 +1,10 @@
+{
+  "demo": true,
+  "email": "ada@northwind.example",
+  "company": "Northwind Supplies",
+  "domain": "northwind.example",
+  "employees": 80,
+  "title": "Founder",
+  "source": "outbound",
+  "budget": 0
+}

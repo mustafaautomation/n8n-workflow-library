@@ -1,0 +1,37 @@
+{
+  "demo": true,
+  "stripe": [
+    {
+      "id": "ch_100",
+      "amount": 149,
+      "currency": "USD"
+    },
+    {
+      "id": "ch_101",
+      "amount": 49,
+      "currency": "USD"
+    },
+    {
+      "id": "ch_102",
+      "amount": 399,
+      "currency": "USD"
+    }
+  ],
+  "bank": [
+    {
+      "id": "txn_900",
+      "amount": 149,
+      "currency": "USD"
+    },
+    {
+      "id": "txn_901",
+      "amount": 49.2,
+      "currency": "USD"
+    },
+    {
+      "id": "txn_902",
+      "amount": 20,
+      "currency": "USD"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "demo": true,
+  "subject": "Refund",
+  "body": "Please refund the last charge. The payment was duplicated.",
+  "email": "cfo@harbor.example"
+}

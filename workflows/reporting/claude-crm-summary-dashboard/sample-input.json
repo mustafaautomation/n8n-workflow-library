@@ -1,0 +1,18 @@
+{
+  "demo": true,
+  "period": "2026-W47",
+  "rows": [
+    {
+      "pipeline": 48000,
+      "sql": 6,
+      "stalled": 4,
+      "won": 2
+    }
+  ],
+  "previous": {
+    "pipeline": 51000,
+    "sql": 5,
+    "stalled": 3,
+    "won": 1
+  }
+}

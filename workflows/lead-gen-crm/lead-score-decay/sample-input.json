@@ -1,0 +1,10 @@
+{
+  "demo": true,
+  "email": "nora@brightline.example",
+  "company": "Brightline Studio",
+  "title": "Head of Operations",
+  "employees": 42,
+  "source": "demo",
+  "budget": 8000,
+  "ageDays": 45
+}

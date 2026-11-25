@@ -1,0 +1,14 @@
+{
+  "demo": true,
+  "name": "Leila Haddad",
+  "email": "leila@example.com",
+  "role": "Automation engineer",
+  "years": 5,
+  "workAuth": true,
+  "resumeText": "Five years building JavaScript services, SQL reporting, and n8n workflows for HubSpot teams.",
+  "start": "2026-12-04T16:00:00.000Z",
+  "end": "2026-12-04T16:30:00.000Z",
+  "status": "booked",
+  "phone": "+15555550155",
+  "title": "Interview with Leila Haddad"
+}

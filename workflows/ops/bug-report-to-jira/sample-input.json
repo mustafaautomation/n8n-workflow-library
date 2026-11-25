@@ -1,0 +1,6 @@
+{
+  "demo": true,
+  "text": "Urgent: checkout returns 500 after pay.\n@leo Due 2026-11-26.",
+  "channel": "#bugs",
+  "source": "slack"
+}

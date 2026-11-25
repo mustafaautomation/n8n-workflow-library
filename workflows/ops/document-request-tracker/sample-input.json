@@ -1,0 +1,6 @@
+{
+  "demo": true,
+  "text": "@amina Please send the W-9.\nDue 2026-12-05.",
+  "source": "email",
+  "from": "finance@harbor.example"
+}

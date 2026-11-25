@@ -1,0 +1,11 @@
+{
+  "demo": true,
+  "orderId": "1044",
+  "email": "guest@example.com",
+  "total": 96,
+  "currency": "USD",
+  "country": "US",
+  "financialStatus": "pending",
+  "itemCount": 2,
+  "shippingMethod": "standard"
+}

@@ -1,0 +1,6 @@
+{
+  "demo": true,
+  "from": "news@example.com",
+  "subject": "Pricing moves this week",
+  "body": "A short note on pricing changes and a new demo format."
+}

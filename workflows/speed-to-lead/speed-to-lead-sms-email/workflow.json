@@ -1,0 +1,334 @@
+{
+  "name": "Speed-to-lead SMS and email inside 60 seconds",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Speed-to-lead SMS and email inside 60 seconds\n\nPortfolio demo only. This workflow is an original example for demonstration. It is not client work and it does not represent a deployment for any customer.\n\nRun **Run demo** to execute the offline rules engine. The live branch is used only when the incoming item sets `demo` to false and the placeholder credentials have been replaced.",
+        "height": 220,
+        "width": 520,
+        "color": 4
+      },
+      "id": "8134934b-5728-4974-ad7e-32126761bd00",
+      "name": "Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -40
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "9d7a2ff8-1dca-4ce8-ac98-f3a598a52224",
+      "name": "Run demo",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        40,
+        280
+      ],
+      "notes": "CLI and the n8n editor start here. An empty manual run loads the bundled sample.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "speed-to-lead-sms-email",
+        "authentication": "none",
+        "responseMode": "lastNode",
+        "responseData": "firstEntryJson",
+        "options": {}
+      },
+      "id": "8fb8a393-4e5e-45a2-8978-c75ba18e1ab3",
+      "name": "Inbound webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        40,
+        460
+      ],
+      "notes": "POST JSON to this path. Include demo:false only after credentials are connected.",
+      "notesInFlow": true,
+      "webhookId": "08a2eaad-4a2c-478b-a639-f91cbd5214a0"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const sample = {\n  \"demo\": true,\n  \"firstName\": \"Ibrahim\",\n  \"email\": \"ibrahim@fieldnote.example\",\n  \"phone\": \"+15555550123\",\n  \"company\": \"Fieldnote\",\n  \"source\": \"pricing\",\n  \"receivedAt\": \"2026-11-25T08:00:00.000Z\"\n};\nconst incoming = $input.first()?.json ?? {};\nconst provided = Object.keys(incoming).filter((key) => incoming[key] !== undefined && incoming[key] !== null && incoming[key] !== '');\nconst base = provided.length ? { ...sample, ...incoming } : { ...sample };\nconst flag = incoming.demo;\nbase.demo = !(flag === false || flag === 'false' || flag === 0 || flag === '0');\nreturn [{ json: base }];\n"
+      },
+      "id": "0a1067a0-bfb6-4ea0-a7d9-2078d5d7dfd9",
+      "name": "Normalize input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        340,
+        360
+      ],
+      "notes": "Merges the request over the bundled sample. demo stays true unless the caller explicitly turns it off.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nconst produced = (() => {\n\nconst received = Date.parse(item.receivedAt || new Date().toISOString());\nconst ageSeconds = Math.max(0, Math.round((Date.now() - received) / 1000));\nconst withinWindow = ageSeconds <= 1 * 60;\nconst owners = ['Amina', 'Leo', 'Priya'];\nconst bucket = Math.abs(hash(String(item.email || item.phone || 'lead'))) % owners.length;\nconst owner = item.owner || owners[bucket];\nconst first = item.firstName || 'there';\nconst company = item.company || 'your team';\nconst message = withinWindow\n  ? 'Hi ' + first + ', this is ' + owner + ' at Northwind. I just saw the ' + (item.source || 'request') + ' from ' + company + ' and can reply right now.'\n  : 'Hi ' + first + ', this is ' + owner + '. Sorry we missed the first minute. I can still help ' + company + ' today.';\nconst record = {\n  to: item.phone || '',\n  email: item.email || '',\n  from: '+15555550100',\n  owner,\n  message,\n  subject: 'Re: ' + (item.source || 'your request'),\n  body: message,\n  ageSeconds,\n  withinWindow,\n  channel: 'sms',\n};\nreturn {\n  summary: (withinWindow ? 'Inside' : 'Outside') + ' the 1-minute window. ' + owner + ' owns the sms reply.',\n  route: withinWindow ? 'instant' : 'late',\n  record,\n  slackText: owner + ' should answer ' + (item.email || item.phone) + ' (' + ageSeconds + 's old).',\n  actions: [{ app: 'sms', operation: 'send', payload: record }],\n};\nfunction hash(value) {\n  let h = 0;\n  for (let i = 0; i < value.length; i++) h = (h * 31 + value.charCodeAt(i)) >>> 0;\n  return h;\n}\n\n})();\nif (!produced || typeof produced.summary !== 'string' || !produced.summary.trim()) {\n  throw new Error('Apply rules must return a summary string');\n}\nreturn [{\n  json: {\n    ...item,\n    ...produced,\n    demo: item.demo !== false,\n  },\n}];\n"
+      },
+      "id": "ae1f8b45-c3bf-4bb6-a09c-5ac8a6bb3c9a",
+      "name": "Apply rules",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        620,
+        360
+      ],
+      "notes": "Deterministic stand-in for the model or enrichment API. Replace or precede this with a live model node when you turn demo mode off.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "de84d513-9f70-4f11-9b4c-3375edd796ff",
+              "leftValue": "={{ $json.demo }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "4d81553e-0cbc-4207-a538-296c45a77e68",
+      "name": "Demo mode?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        900,
+        360
+      ],
+      "notes": "True: package the offline result. False: run the credentialed apps.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nreturn [{\n  json: {\n    demo: true,\n    status: 'demo_ready',\n    workflow: 'speed-to-lead-sms-email',\n    summary: item.summary,\n    route: item.route ?? null,\n    record: item.record ?? {},\n    actions: item.actions ?? [],\n    slackText: item.slackText ?? item.summary,\n    notes: 'Demo mode did not call external apps. Send {\"demo\": false} after placeholder credentials are replaced.',\n  },\n}];\n"
+      },
+      "id": "052eed06-c836-4bd8-8619-6843ad6ac5a3",
+      "name": "Package demo result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "sms",
+        "operation": "send",
+        "from": "={{ $json.record.from || '+15555550100' }}",
+        "to": "={{ $json.record.to || $json.record.phone || $json.phone }}",
+        "message": "={{ $json.record.message || $json.slackText || $json.summary }}",
+        "twiml": "={{ $json.record.twiml || '<Response><Say>We will call you back shortly.</Say></Response>' }}"
+      },
+      "id": "5da3c811-40ca-4b9b-b29c-333e7c7141df",
+      "name": "Send SMS",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        1180,
+        760
+      ],
+      "credentials": {
+        "twilioApi": {
+          "id": "PLACEHOLDER_TWILIOAPI",
+          "name": "Twilio account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $json.record.email || $json.email || 'lead@example.com' }}",
+        "subject": "={{ $json.record.subject || $json.summary }}",
+        "message": "={{ $json.record.body || $json.record.message || $json.summary }}",
+        "emailType": "text",
+        "messageId": "={{ $json.record.messageId || 'MESSAGE_ID' }}",
+        "labelIds": [
+          "Label_1"
+        ]
+      },
+      "id": "20c9b521-1757-489e-807f-270485efd091",
+      "name": "Send Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1460,
+        760
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "PLACEHOLDER_GMAILOAUTH2",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "post",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "#speed-to-lead"
+        },
+        "text": "={{ $json.slackText || $json.summary }}",
+        "otherOptions": {}
+      },
+      "id": "de05799d-2822-4b24-9a3e-186e6057892f",
+      "name": "Post #speed-to-lead",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1740,
+        760
+      ],
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "PLACEHOLDER_SLACKOAUTH2API",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Live path\n\nReplace every `PLACEHOLDER_*` credential, then POST the sample with `\"demo\": false`.\n\nThe nodes on this branch use the `record` and `actions` fields produced by Apply rules.",
+        "height": 180,
+        "width": 420,
+        "color": 6
+      },
+      "id": "479af6b2-f1fd-4c0b-8feb-1737cf12c65c",
+      "name": "Live path",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        520
+      ]
+    }
+  ],
+  "connections": {
+    "Run demo": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inbound webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize input": {
+      "main": [
+        [
+          {
+            "node": "Apply rules",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply rules": {
+      "main": [
+        [
+          {
+            "node": "Demo mode?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Demo mode?": {
+      "main": [
+        [
+          {
+            "node": "Package demo result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send SMS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send SMS": {
+      "main": [
+        [
+          {
+            "node": "Send Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Gmail": {
+      "main": [
+        [
+          {
+            "node": "Post #speed-to-lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "description": "When a pricing or demo lead arrives, the workflow checks that it is still inside 60 seconds, assigns a named owner, and prepares the SMS and email that owner should send."
+  },
+  "active": false
+}

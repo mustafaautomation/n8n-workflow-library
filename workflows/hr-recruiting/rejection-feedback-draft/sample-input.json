@@ -1,0 +1,9 @@
+{
+  "demo": true,
+  "name": "Leila Haddad",
+  "email": "leila@example.com",
+  "role": "Automation engineer",
+  "years": 1,
+  "workAuth": true,
+  "resumeText": "I enjoy writing and customer calls."
+}

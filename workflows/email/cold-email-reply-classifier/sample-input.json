@@ -1,0 +1,6 @@
+{
+  "demo": true,
+  "from": "ada@northwind.example",
+  "subject": "Re: quick question",
+  "body": "This is interesting. Can you send pricing and a time for a demo?"
+}

@@ -1,0 +1,335 @@
+{
+  "name": "Vendor bill from email into QuickBooks",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Vendor bill from email into QuickBooks\n\nPortfolio demo only. This workflow is an original example for demonstration. It is not client work and it does not represent a deployment for any customer.\n\nRun **Run demo** to execute the offline rules engine. The live branch is used only when the incoming item sets `demo` to false and the placeholder credentials have been replaced.",
+        "height": 220,
+        "width": 520,
+        "color": 4
+      },
+      "id": "3f976392-173e-4a0a-95a4-eadbee6eec28",
+      "name": "Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -40
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "b8aa2dbb-4678-4b00-b12f-3dd777ebfbfc",
+      "name": "Run demo",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        40,
+        280
+      ],
+      "notes": "CLI and the n8n editor start here. An empty manual run loads the bundled sample.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "vendor-bill-to-quickbooks",
+        "authentication": "none",
+        "responseMode": "lastNode",
+        "responseData": "firstEntryJson",
+        "options": {}
+      },
+      "id": "4f38416d-d868-4e11-a02f-33131c9aea41",
+      "name": "Inbound webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        40,
+        460
+      ],
+      "notes": "POST JSON to this path. Include demo:false only after credentials are connected.",
+      "notesInFlow": true,
+      "webhookId": "e619779b-b83b-4aa4-88ca-e42bff4d9de0"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "event": "messageReceived",
+        "simple": true
+      },
+      "id": "92e7447a-62af-4b88-b353-e196ad30af78",
+      "name": "Gmail trigger",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        40,
+        640
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "PLACEHOLDER_GMAILOAUTH2",
+          "name": "Gmail account"
+        }
+      },
+      "notes": "Polls the mailbox once credentials replace the placeholder. Tests do not call Gmail.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const sample = {\n  \"demo\": true,\n  \"from\": \"ap@northwind.example\",\n  \"filename\": \"northwind-inv-2041.pdf\",\n  \"vendor\": \"Northwind Supplies\",\n  \"invoiceNumber\": \"INV-2041\",\n  \"currency\": \"USD\",\n  \"subtotal\": 1100,\n  \"tax\": 88,\n  \"total\": 1188,\n  \"dueDate\": \"2026-12-15\",\n  \"text\": \"Vendor: Northwind Supplies\\nInvoice INV-2041\\nSubtotal 1100.00\\nTax 88.00\\nTotal 1188.00\\nDue 2026-12-15\\n\"\n};\nconst incoming = $input.first()?.json ?? {};\nconst provided = Object.keys(incoming).filter((key) => incoming[key] !== undefined && incoming[key] !== null && incoming[key] !== '');\nconst base = provided.length ? { ...sample, ...incoming } : { ...sample };\nconst flag = incoming.demo;\nbase.demo = !(flag === false || flag === 'false' || flag === 0 || flag === '0');\nreturn [{ json: base }];\n"
+      },
+      "id": "6729af87-ef85-48ae-a2a8-a3c494de1af4",
+      "name": "Normalize input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        340,
+        360
+      ],
+      "notes": "Merges the request over the bundled sample. demo stays true unless the caller explicitly turns it off.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nconst produced = (() => {\n\nconst text = String(item.text || item.body || '');\nconst vendor = item.vendor || (text.match(/vendor[:\\s]+([^\\n]+)/i) || [])[1] || 'Unknown vendor';\nconst invoiceNumber = item.invoiceNumber || (text.match(/inv(?:oice)?\\s*#?\\s*([A-Z0-9-]+)/i) || [])[1] || 'UNKNOWN';\nconst currency = item.currency || 'USD';\nconst total = Number(item.total ?? matchAmount(text, 'total') ?? 0);\nconst tax = Number(item.tax ?? matchAmount(text, 'tax') ?? 0);\nconst subtotal = Number(item.subtotal ?? matchAmount(text, 'subtotal') ?? (total - tax));\nconst dueDate = item.dueDate || (text.match(/due[:\\s]+(\\d{4}-\\d{2}-\\d{2})/i) || [])[1] || '';\nconst expected = Math.round((subtotal + tax) * 100) / 100;\nconst balanced = Math.abs(expected - total) <= Math.max(0.5, total * 0.02);\nconst record = {\n  vendor: String(vendor).trim(),\n  invoiceNumber,\n  currency,\n  subtotal,\n  tax,\n  total,\n  dueDate,\n  balanced,\n  mailbox: item.from || '',\n  filename: item.filename || 'invoice.pdf',\n  destination: 'QuickBooks',\n};\nreturn {\n  summary: record.vendor + ' ' + invoiceNumber + ' for ' + total + ' ' + currency + (balanced ? ' balances.' : ' does not balance.'),\n  route: balanced ? 'post' : 'review',\n  record,\n  slackText: (balanced ? 'Post' : 'Review') + ' invoice ' + invoiceNumber + ' from ' + record.vendor + ' (' + total + ' ' + currency + ').',\n  actions: [{ app: 'QuickBooks', operation: balanced ? 'create' : 'flag', payload: record }],\n};\nfunction matchAmount(source, label) {\n  const pattern = new RegExp(label + '[:\\\\s]*\\\\$?([0-9,]+(?:\\\\.[0-9]{2})?)', 'i');\n  const found = source.match(pattern);\n  return found ? Number(found[1].replace(/,/g, '')) : null;\n}\n\n})();\nif (!produced || typeof produced.summary !== 'string' || !produced.summary.trim()) {\n  throw new Error('Apply rules must return a summary string');\n}\nreturn [{\n  json: {\n    ...item,\n    ...produced,\n    demo: item.demo !== false,\n  },\n}];\n"
+      },
+      "id": "ef752b48-7cbd-485f-9f8c-51198e5067eb",
+      "name": "Apply rules",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        620,
+        360
+      ],
+      "notes": "Deterministic stand-in for the model or enrichment API. Replace or precede this with a live model node when you turn demo mode off.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "131e97ca-e18c-4c4c-b40b-b94801620fa2",
+              "leftValue": "={{ $json.demo }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "97427d2f-f174-487d-b9a2-b30f2eb48d00",
+      "name": "Demo mode?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        900,
+        360
+      ],
+      "notes": "True: package the offline result. False: run the credentialed apps.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nreturn [{\n  json: {\n    demo: true,\n    status: 'demo_ready',\n    workflow: 'vendor-bill-to-quickbooks',\n    summary: item.summary,\n    route: item.route ?? null,\n    record: item.record ?? {},\n    actions: item.actions ?? [],\n    slackText: item.slackText ?? item.summary,\n    notes: 'Demo mode did not call external apps. Send {\"demo\": false} after placeholder credentials are replaced.',\n  },\n}];\n"
+      },
+      "id": "35d7c58f-9ead-4ca3-8733-32368469acc3",
+      "name": "Package demo result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "bill",
+        "operation": "create",
+        "VendorRef": "YOUR_QUICKBOOKS_VENDOR_ID",
+        "CustomerRef": "YOUR_QUICKBOOKS_CUSTOMER_ID"
+      },
+      "id": "d97e3a4e-20d9-4358-aed7-e25537c2cd30",
+      "name": "Create QuickBooks bill",
+      "type": "n8n-nodes-base.quickbooks",
+      "typeVersion": 1,
+      "position": [
+        1180,
+        760
+      ],
+      "credentials": {
+        "quickBooksOAuth2Api": {
+          "id": "PLACEHOLDER_QUICKBOOKSOAUTH2API",
+          "name": "QuickBooks account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "sheet",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "YOUR_SPREADSHEET_ID"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "QBO bills"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "3c15b7a9-70f4-46dc-90fc-97782018c204",
+      "name": "Append QBO bills",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1460,
+        760
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PLACEHOLDER_GOOGLESHEETSOAUTH2API",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Live path\n\nReplace every `PLACEHOLDER_*` credential, then POST the sample with `\"demo\": false`.\n\nThe nodes on this branch use the `record` and `actions` fields produced by Apply rules.",
+        "height": 180,
+        "width": 420,
+        "color": 6
+      },
+      "id": "e66a83fe-0133-4541-9f70-090cafbf7d34",
+      "name": "Live path",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        520
+      ]
+    }
+  ],
+  "connections": {
+    "Run demo": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inbound webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail trigger": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize input": {
+      "main": [
+        [
+          {
+            "node": "Apply rules",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply rules": {
+      "main": [
+        [
+          {
+            "node": "Demo mode?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Demo mode?": {
+      "main": [
+        [
+          {
+            "node": "Package demo result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create QuickBooks bill",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create QuickBooks bill": {
+      "main": [
+        [
+          {
+            "node": "Append QBO bills",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "description": "A vendor email becomes a balanced QuickBooks bill and a sheet row. Unbalanced extractions stay on the review route."
+  },
+  "active": false
+}

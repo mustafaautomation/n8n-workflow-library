@@ -1,0 +1,14 @@
+{
+  "demo": true,
+  "from": "ap@northwind.example",
+  "filename": "northwind-inv-2041.pdf",
+  "vendor": "Northwind Supplies",
+  "invoiceNumber": "INV-2041",
+  "currency": "EUR",
+  "subtotal": 1100,
+  "tax": 88,
+  "total": 1188,
+  "dueDate": "2026-12-15",
+  "text": "Vendor: Northwind Supplies\nInvoice INV-2041\nSubtotal 1100.00\nTax 88.00\nTotal 1188.00\nDue 2026-12-15\n",
+  "fxRateToUsd": 1.08
+}

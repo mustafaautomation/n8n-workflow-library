@@ -1,0 +1,13 @@
+{
+  "demo": true,
+  "from": "ap@northwind.example",
+  "filename": "taxi-receipt.jpg",
+  "vendor": "City Cab",
+  "invoiceNumber": "R-19",
+  "currency": "USD",
+  "subtotal": 28,
+  "tax": 2,
+  "total": 30,
+  "dueDate": "2026-12-15",
+  "text": "Vendor: City Cab\nInvoice R-19\nSubtotal 28.00\nTax 2.00\nTotal 30.00\n"
+}

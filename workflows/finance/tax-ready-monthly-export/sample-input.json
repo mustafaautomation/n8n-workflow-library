@@ -1,0 +1,14 @@
+{
+  "demo": true,
+  "period": "2026-11",
+  "rows": [
+    {
+      "revenue": 4200,
+      "taxCollected": 336
+    }
+  ],
+  "previous": {
+    "revenue": 3900,
+    "taxCollected": 312
+  }
+}

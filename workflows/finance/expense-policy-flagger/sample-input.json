@@ -1,0 +1,9 @@
+{
+  "demo": true,
+  "employee": "Leo",
+  "merchant": "City Bistro",
+  "category": "meal",
+  "amount": 96,
+  "currency": "USD",
+  "receipt": true
+}

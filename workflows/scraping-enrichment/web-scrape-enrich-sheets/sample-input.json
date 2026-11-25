@@ -1,0 +1,6 @@
+{
+  "demo": true,
+  "url": "https://example.com/about",
+  "html": "<title>Brightline Studio</title><p>Email hello@brightline.example or call +1 555 555 0142.</p>",
+  "company": "Brightline Studio"
+}

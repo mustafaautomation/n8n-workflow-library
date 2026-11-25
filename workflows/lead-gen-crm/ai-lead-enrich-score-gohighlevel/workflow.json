@@ -1,0 +1,440 @@
+{
+  "name": "AI lead capture, enrichment, and scoring into GoHighLevel",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## AI lead capture, enrichment, and scoring into GoHighLevel\n\nPortfolio demo only. This workflow is an original example for demonstration. It is not client work and it does not represent a deployment for any customer.\n\nRun **Run demo** to execute the offline rules engine. The live branch is used only when the incoming item sets `demo` to false and the placeholder credentials have been replaced.",
+        "height": 220,
+        "width": 520,
+        "color": 4
+      },
+      "id": "55a958e9-f23b-4a62-adde-cd7fe9ae0beb",
+      "name": "Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -40
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "584a5ea2-705d-47bb-8982-8cffd2d6cfc0",
+      "name": "Run demo",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        40,
+        280
+      ],
+      "notes": "CLI and the n8n editor start here. An empty manual run loads the bundled sample.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ai-lead-enrich-score-gohighlevel",
+        "authentication": "none",
+        "responseMode": "lastNode",
+        "responseData": "firstEntryJson",
+        "options": {}
+      },
+      "id": "03ae1340-86ba-432b-9057-e899f95029de",
+      "name": "Inbound webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        40,
+        460
+      ],
+      "notes": "POST JSON to this path. Include demo:false only after credentials are connected.",
+      "notesInFlow": true,
+      "webhookId": "7fcd7474-a060-4393-8845-595b27cf2a99"
+    },
+    {
+      "parameters": {
+        "formTitle": "Start the conversation",
+        "formDescription": "Portfolio demo form. Submissions land in the same rules engine as the webhook.",
+        "responseMode": "lastNode",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "firstName",
+              "fieldType": "text",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "lastName",
+              "fieldType": "text",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "email",
+              "fieldType": "text",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "company",
+              "fieldType": "text",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "title",
+              "fieldType": "text",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "employees",
+              "fieldType": "number",
+              "requiredField": false
+            }
+          ]
+        }
+      },
+      "id": "cfb855f4-eecd-4672-b215-19b0ca9ab505",
+      "name": "Web form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        40,
+        640
+      ],
+      "notes": "n8n Form trigger. Field names match the sample payload.",
+      "notesInFlow": true,
+      "webhookId": "ed1c6bbf-e207-4fc3-95ee-906e23536527"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const sample = {\n  \"demo\": true,\n  \"firstName\": \"Nora\",\n  \"lastName\": \"Rahman\",\n  \"email\": \"jonas@harbor.example\",\n  \"company\": \"Harbor & Co\",\n  \"title\": \"Head of Operations\",\n  \"employees\": 18,\n  \"budget\": 2400,\n  \"source\": \"pricing\",\n  \"utmSource\": \"linkedin\",\n  \"utmMedium\": \"cpc\",\n  \"utmCampaign\": \"ops-audit-q1\"\n};\nconst incoming = $input.first()?.json ?? {};\nconst provided = Object.keys(incoming).filter((key) => incoming[key] !== undefined && incoming[key] !== null && incoming[key] !== '');\nconst base = provided.length ? { ...sample, ...incoming } : { ...sample };\nconst flag = incoming.demo;\nbase.demo = !(flag === false || flag === 'false' || flag === 0 || flag === '0');\nreturn [{ json: base }];\n"
+      },
+      "id": "4318512d-ae14-4202-b0a6-b24e18e6a191",
+      "name": "Normalize input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        340,
+        360
+      ],
+      "notes": "Merges the request over the bundled sample. demo stays true unless the caller explicitly turns it off.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nconst produced = (() => {\n\nconst email = String(item.email || '').trim().toLowerCase();\nconst company = String(item.company || 'Unknown company').trim();\nconst source = String(item.source || 'unknown').trim().toLowerCase();\nconst employees = Number(item.employees || item.headcount || 0);\nconst budget = Number(item.budget || 0);\nconst title = String(item.title || '').toLowerCase();\nconst domain = email.includes('@') ? email.split('@')[1] : '';\nconst freeDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com'];\nconst intentSources = ['demo', 'pricing', 'referral'];\nlet score = 15;\nconst reasons = [];\nif (email && !freeDomains.includes(domain)) {\n  score += 15;\n  reasons.push('work email');\n} else if (email) {\n  reasons.push('free inbox, keep it in nurture');\n}\nif (employees >= 10) {\n  score += 20;\n  reasons.push('headcount at or above 10');\n} else if (employees >= 10) {\n  score += 10;\n  reasons.push('team of 10 or more');\n}\nif (intentSources.includes(source)) {\n  score += 25;\n  reasons.push('high-intent source: ' + source);\n}\nif (budget >= 1500) {\n  score += 15;\n  reasons.push('budget at or above 1500');\n}\nif (/(founder|owner|vp|head|director|ceo|cto|cmo)/.test(title)) {\n  score += 10;\n  reasons.push('buyer title');\n}\nscore = Math.max(0, Math.min(100, score));\nlet tier = score >= 70 ? 'sql' : score >= 40 ? 'mql' : 'nurture';\nconst known = Array.isArray(item.knownEmails) ? item.knownEmails.map((value) => String(value).toLowerCase()) : [];\nif (email && known.includes(email)) tier = 'duplicate';\nconst record = {\n  email,\n  firstName: item.firstName || '',\n  lastName: item.lastName || '',\n  company,\n  title: item.title || '',\n  source,\n  employees,\n  budget,\n  score,\n  tier,\n  reasons: reasons.join('; '),\n  dealName: company + ' \u2014 ' + tier.toUpperCase(),\n  amount: budget,\n  stage: tier === 'sql' ? 'appointmentscheduled' : 'qualifiedtobuy',\n};\nreturn {\n  summary: tier === 'duplicate'\n    ? email + ' is already on file. No new GoHighLevel record is required.'\n    : company + ' (' + email + ') scored ' + score + ' and landed in ' + tier + ' for GoHighLevel.',\n  route: tier,\n  record,\n  slackText: tier.toUpperCase() + ' lead ' + email + ' at ' + company + ' scored ' + score + '. ' + reasons[0],\n  actions: [\n    { app: 'GoHighLevel', operation: 'upsert', payload: record },\n  ],\n};\n\n})();\nif (!produced || typeof produced.summary !== 'string' || !produced.summary.trim()) {\n  throw new Error('Apply rules must return a summary string');\n}\nreturn [{\n  json: {\n    ...item,\n    ...produced,\n    demo: item.demo !== false,\n  },\n}];\n"
+      },
+      "id": "34339f17-d254-4d1d-8569-898f6d194ada",
+      "name": "Apply rules",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        620,
+        360
+      ],
+      "notes": "Deterministic stand-in for the model or enrichment API. Replace or precede this with a live model node when you turn demo mode off.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "aa19f6e4-cfb1-41cf-8c3b-d491c4bd9b33",
+              "leftValue": "={{ $json.demo }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "edbbcf05-c2a8-41dc-a5d1-580c8d6f542a",
+      "name": "Demo mode?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        900,
+        360
+      ],
+      "notes": "True: package the offline result. False: run the credentialed apps.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nreturn [{\n  json: {\n    demo: true,\n    status: 'demo_ready',\n    workflow: 'ai-lead-enrich-score-gohighlevel',\n    summary: item.summary,\n    route: item.route ?? null,\n    record: item.record ?? {},\n    actions: item.actions ?? [],\n    slackText: item.slackText ?? item.summary,\n    notes: 'Demo mode did not call external apps. Send {\"demo\": false} after placeholder credentials are replaced.',\n  },\n}];\n"
+      },
+      "id": "81ad8848-43c7-4ffc-90b3-b17c7dedea86",
+      "name": "Package demo result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "contact",
+        "operation": "create",
+        "additionalFields": {
+          "email": "={{ $json.record.email || $json.email }}",
+          "name": "={{ $json.record.firstName || $json.summary }}"
+        }
+      },
+      "id": "8559a9ba-6e39-4411-98f5-944767663755",
+      "name": "Create HighLevel contact",
+      "type": "n8n-nodes-base.highLevel",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        760
+      ],
+      "credentials": {
+        "highLevelOAuth2Api": {
+          "id": "PLACEHOLDER_HIGHLEVELOAUTH2API",
+          "name": "HighLevel account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "opportunity",
+        "operation": "create",
+        "contactId": "={{ $json.record.email || $json.email || 'lead@example.com' }}",
+        "name": "={{ $json.record.dealName || $json.record.company || $json.summary }}",
+        "status": "open"
+      },
+      "id": "2c9155bf-e0ea-45bd-88a4-1718a3fc38d6",
+      "name": "Create HighLevel opportunity",
+      "type": "n8n-nodes-base.highLevel",
+      "typeVersion": 2,
+      "position": [
+        1460,
+        760
+      ],
+      "credentials": {
+        "highLevelOAuth2Api": {
+          "id": "PLACEHOLDER_HIGHLEVELOAUTH2API",
+          "name": "HighLevel account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "sheet",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "YOUR_SPREADSHEET_ID"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "HighLevel leads"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "80ecaf5d-c284-49dc-bd79-f1754595bc62",
+      "name": "Append HighLevel leads",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1740,
+        760
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PLACEHOLDER_GOOGLESHEETSOAUTH2API",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "post",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "#closers"
+        },
+        "text": "={{ $json.slackText || $json.summary }}",
+        "otherOptions": {}
+      },
+      "id": "83c72862-ef2c-4e34-85dd-7250990bd783",
+      "name": "Post #closers",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        2020,
+        760
+      ],
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "PLACEHOLDER_SLACKOAUTH2API",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Live path\n\nReplace every `PLACEHOLDER_*` credential, then POST the sample with `\"demo\": false`.\n\nThe nodes on this branch use the `record` and `actions` fields produced by Apply rules.",
+        "height": 180,
+        "width": 420,
+        "color": 6
+      },
+      "id": "4e4e6efa-9bca-41e4-9f48-075e7e33509a",
+      "name": "Live path",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        520
+      ]
+    }
+  ],
+  "connections": {
+    "Run demo": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inbound webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Web form": {
+      "main": [
+        [
+          {
+            "node": "Normalize input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize input": {
+      "main": [
+        [
+          {
+            "node": "Apply rules",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply rules": {
+      "main": [
+        [
+          {
+            "node": "Demo mode?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Demo mode?": {
+      "main": [
+        [
+          {
+            "node": "Package demo result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create HighLevel contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create HighLevel contact": {
+      "main": [
+        [
+          {
+            "node": "Create HighLevel opportunity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create HighLevel opportunity": {
+      "main": [
+        [
+          {
+            "node": "Append HighLevel leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append HighLevel leads": {
+      "main": [
+        [
+          {
+            "node": "Post #closers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "description": "The same capture-and-score path as the HubSpot demo, aimed at a GoHighLevel sub-account: contact, opportunity when the tier is SQL, sheet log, Slack ping."
+  },
+  "active": false
+}

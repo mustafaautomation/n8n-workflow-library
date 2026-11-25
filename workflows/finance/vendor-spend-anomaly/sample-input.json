@@ -1,0 +1,14 @@
+{
+  "demo": true,
+  "period": "2026-11",
+  "rows": [
+    {
+      "software": 890,
+      "contractors": 4000
+    }
+  ],
+  "previous": {
+    "software": 420,
+    "contractors": 4000
+  }
+}
