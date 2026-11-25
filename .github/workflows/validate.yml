@@ -33,7 +33,17 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential python3
           mkdir -p .ci
-          npm install --prefix .ci n8n@2.49.5 --no-audit --no-fund
+          # Floating deps can be published a few seconds before the version they
+          # require (tldts@7.5.6 asked for tldts-core@^7.5.6 before it existed).
+          for attempt in 1 2 3; do
+            rm -rf .ci/node_modules .ci/package.json .ci/package-lock.json
+            if npm install --prefix .ci n8n@2.49.5 --no-audit --no-fund; then
+              exit 0
+            fi
+            echo "npm install n8n@2.49.5 failed (attempt ${attempt})"
+            sleep 20
+          done
+          exit 1
       - name: Import every workflow into n8n
         env:
           N8N_BIN: .ci/node_modules/n8n/bin/n8n
