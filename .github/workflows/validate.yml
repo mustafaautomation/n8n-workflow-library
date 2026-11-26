@@ -17,6 +17,8 @@ jobs:
           node-version: "22"
       - name: Parse catalog and workflow JSON
         run: python3 scripts/validate_catalog.py
+      - name: Self-test the validator
+        run: python3 scripts/validate_catalog.py --self-test
 
   import:
     runs-on: ubuntu-latest

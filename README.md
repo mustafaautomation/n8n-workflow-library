@@ -73,9 +73,10 @@ The JSON and READMEs are generated so the catalog cannot drift from the folders.
 ```bash
 python3 scripts/build_library.py
 python3 scripts/validate_catalog.py
+python3 scripts/validate_catalog.py --self-test
 ```
 
-Validation checks that every `workflow.json` parses, that connections point at real nodes, that credential ids are placeholders, that `catalog.json` matches the folders, and that each Code node is valid JavaScript. Importing into n8n 2.49.5 is what `scripts/import_and_test.py` does locally. GitHub Actions runs the parser and, on a Node 24 runner, an n8n import.
+Validation checks that every `workflow.json` parses, that connections point at real nodes, that node names and ids are unique, that credentials carry only a `PLACEHOLDER_*` id and a generic name, that no secret, real account id, real email domain, real phone number, or unlisted host appears in a workflow, sample, or README, that `catalog.json` matches the folders, that the workflow counts in this README and each category README match the folders, and that each Code node is valid JavaScript. `--self-test` runs every check against broken fixtures to prove it fires. Importing into n8n 2.49.5 is what `scripts/import_and_test.py` does locally. GitHub Actions runs the parser and, on a Node 24 runner, an n8n import.
 
 ## Layout
 

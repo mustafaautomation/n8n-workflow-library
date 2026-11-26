@@ -172,12 +172,12 @@
         "project": {
           "__rl": true,
           "mode": "id",
-          "value": "10000"
+          "value": "YOUR_JIRA_PROJECT_ID"
         },
         "issueType": {
           "__rl": true,
           "mode": "id",
-          "value": "10001"
+          "value": "YOUR_JIRA_ISSUE_TYPE_ID"
         },
         "summary": "={{ $json.record.title || $json.summary }}",
         "additionalFields": {

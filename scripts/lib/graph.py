@@ -1178,8 +1178,8 @@ def _node_jira(arg: str, x: int, y: int) -> tuple[str, dict]:
     params = {
         "resource": "issue",
         "operation": "create",
-        "project": _rl("10000", "id"),
-        "issueType": _rl("10001", "id"),
+        "project": _rl("YOUR_JIRA_PROJECT_ID", "id"),
+        "issueType": _rl("YOUR_JIRA_ISSUE_TYPE_ID", "id"),
         "summary": "={{ $json.record.title || $json.summary }}",
         "additionalFields": {"description": "={{ $json.record.body || $json.summary }}"},
     }
